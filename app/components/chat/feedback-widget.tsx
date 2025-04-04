@@ -29,7 +29,11 @@ const TRANSITION_CONTENT = {
   duration: 0.2,
 }
 
-export function FeedbackWidget({ authUserId }: { authUserId: string }) {
+type FeedbackWidgetProps = {
+  authUserId?: string
+}
+
+export function FeedbackWidget({ authUserId }: FeedbackWidgetProps) {
   const [status, setStatus] = useState<
     "idle" | "submitting" | "success" | "error"
   >("idle")
@@ -50,6 +54,14 @@ export function FeedbackWidget({ authUserId }: { authUserId: string }) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (!authUserId) {
+      toast({
+        title: "Please login to submit feedback",
+        status: "error",
+      })
+      return
+    }
+
     setStatus("submitting")
     if (!feedback.trim()) return
 
@@ -86,7 +98,7 @@ export function FeedbackWidget({ authUserId }: { authUserId: string }) {
     }
   }
 
-  if (isMobileOrTablet) {
+  if (isMobileOrTablet || !authUserId) {
     return null
   }
 

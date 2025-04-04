@@ -17,6 +17,7 @@ import {
 import { Info, Question, User } from "@phosphor-icons/react"
 import { APP_NAME } from "../../lib/config"
 import { AppInfo } from "./app-info"
+import { Feedback } from "./feedback"
 import { Settings } from "./settings"
 
 type User = Database["public"]["Tables"]["users"]["Row"]
@@ -55,10 +56,15 @@ export default function UserMenu({ user }: { user: User }) {
             </DropdownMenuItem>
           }
         />
-        {/* <DropdownMenuItem>
-          <Question className="size-4" />
-          <span>Feedback</span>
-        </DropdownMenuItem> */}
+        <Feedback
+          trigger={
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <Question className="size-4" />
+              <span>Feedback</span>
+            </DropdownMenuItem>
+          }
+          authUserId={user.id}
+        />
         <AppInfo
           trigger={
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
