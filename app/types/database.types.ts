@@ -94,7 +94,6 @@ export type Database = {
           },
         ]
       }
-
       messages: {
         Row: {
           attachments: Attachment[]
@@ -122,7 +121,6 @@ export type Database = {
         }
         Relationships: []
       }
-
       usage_history: {
         Row: {
           created_at: string | null
@@ -200,35 +198,35 @@ export type Database = {
         }
         Relationships: []
       }
-    }
-    feedback: {
-      Row: {
-        created_at: string | null
-        id: string
-        message: string
-        user_id: string
+      feedback: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      Insert: {
-        created_at?: string | null
-        id?: string
-        message: string
-        user_id: string
-      }
-      Update: {
-        created_at?: string | null
-        id?: string
-        message?: string
-        user_id?: string
-      }
-      Relationships: [
-        {
-          foreignKeyName: "feedback_user_id_fkey"
-          columns: ["user_id"]
-          isOneToOne: false
-          referencedRelation: "users"
-          referencedColumns: ["id"]
-        },
-      ]
     }
     Views: {
       [_ in never]: never

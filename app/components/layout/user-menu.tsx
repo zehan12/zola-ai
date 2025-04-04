@@ -14,7 +14,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { Info, User } from "@phosphor-icons/react"
+import { Info, Question, User } from "@phosphor-icons/react"
 import { APP_NAME } from "../../lib/config"
 import { AppInfo } from "./app-info"
 import { Settings } from "./settings"
@@ -41,7 +41,7 @@ export default function UserMenu({ user }: { user: User }) {
         forceMount
         onCloseAutoFocus={(e) => e.preventDefault()}
       >
-        <DropdownMenuItem className="flex flex-col items-start gap-0 hover:bg-transparent focus:bg-transparent">
+        <DropdownMenuItem className="flex flex-col items-start gap-0 no-underline hover:bg-transparent focus:bg-transparent">
           <span>{user?.display_name}</span>
           <span className="text-muted-foreground">{user?.email}</span>
         </DropdownMenuItem>
@@ -55,6 +55,10 @@ export default function UserMenu({ user }: { user: User }) {
             </DropdownMenuItem>
           }
         />
+        {/* <DropdownMenuItem>
+          <Question className="size-4" />
+          <span>Feedback</span>
+        </DropdownMenuItem> */}
         <AppInfo
           trigger={
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>

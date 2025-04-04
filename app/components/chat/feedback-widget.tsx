@@ -1,12 +1,14 @@
 "use client"
 
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
+import { createClient } from "@/app/lib/supabase/client"
 import {
   MorphingPopover,
   MorphingPopoverContent,
   MorphingPopoverTrigger,
 } from "@/components/motion-primitives/morphing-popover"
 import { Button } from "@/components/ui/button"
+import { toast } from "@/components/ui/toast"
 import {
   CaretLeft,
   QuestionMark,
@@ -14,7 +16,7 @@ import {
   Spinner,
 } from "@phosphor-icons/react"
 import { AnimatePresence, motion } from "motion/react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 const TRANSITION_POPOVER = {
   type: "spring",
@@ -27,13 +29,18 @@ const TRANSITION_CONTENT = {
   duration: 0.2,
 }
 
-export function FeedbackWidget() {
+export function FeedbackWidget({ authUserId }: { authUserId: string }) {
   const [status, setStatus] = useState<
     "idle" | "submitting" | "success" | "error"
   >("idle")
   const [feedback, setFeedback] = useState("")
   const [isOpen, setIsOpen] = useState(false)
   const isMobileOrTablet = useBreakpoint(896)
+
+  useEffect(() => {
+    setStatus("idle")
+    setFeedback("")
+  }, [isOpen])
 
   const closeMenu = () => {
     setFeedback("")
@@ -46,19 +53,37 @@ export function FeedbackWidget() {
     setStatus("submitting")
     if (!feedback.trim()) return
 
-    // Set submitting state
-    setStatus("submitting")
+    try {
+      const supabase = createClient()
 
-    // Simulate API call with timeout
-    setTimeout(() => {
-      console.log("Feedback submitted:", { feedback })
+      const { error } = await supabase.from("feedback").insert({
+        message: feedback,
+        user_id: authUserId,
+      })
+
+      if (error) {
+        toast({
+          title: `Error submitting feedback: ${error}`,
+          status: "error",
+        })
+        setStatus("error")
+        return
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 1200))
+
       setStatus("success")
 
-      // Auto close after showing success
       setTimeout(() => {
         closeMenu()
-      }, 1500)
-    }, 3000)
+      }, 2500)
+    } catch (error) {
+      toast({
+        title: `Error submitting feedback: ${error}`,
+        status: "error",
+      })
+      setStatus("error")
+    }
   }
 
   if (isMobileOrTablet) {
@@ -144,7 +169,7 @@ export function FeedbackWidget() {
                     transition={{
                       duration: 0,
                     }}
-                    className="text-muted-foreground pointer-events-none absolute top-3.5 left-4 text-sm select-none"
+                    className="text-muted-foreground pointer-events-none absolute top-3.5 left-4 text-sm leading-[1.4] select-none"
                   >
                     What would make Zola better for you?
                   </motion.span>

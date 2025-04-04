@@ -381,7 +381,7 @@ export default function Chat({
           status={status}
         />
       </motion.div>
-      <FeedbackWidget />
+      <FeedbackWidget authUserId={propUserId} />
     </div>
   )
 }
