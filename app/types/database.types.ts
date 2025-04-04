@@ -94,59 +94,7 @@ export type Database = {
           },
         ]
       }
-      Logo: {
-        Row: {
-          color: string
-          filter: string | null
-          id: number
-          inserted_at: string
-          logoid: string
-          name: string
-          orderid: number
-          rotate: number
-          scale: number | null
-          strokeWidth: number
-          updated_at: string
-          userid: string | null
-        }
-        Insert: {
-          color: string
-          filter?: string | null
-          id?: never
-          inserted_at?: string
-          logoid: string
-          name: string
-          orderid: number
-          rotate: number
-          scale?: number | null
-          strokeWidth: number
-          updated_at?: string
-          userid?: string | null
-        }
-        Update: {
-          color?: string
-          filter?: string | null
-          id?: never
-          inserted_at?: string
-          logoid?: string
-          name?: string
-          orderid?: number
-          rotate?: number
-          scale?: number | null
-          strokeWidth?: number
-          updated_at?: string
-          userid?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "Logo_orderid_fkey"
-            columns: ["orderid"]
-            isOneToOne: false
-            referencedRelation: "Order"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+
       messages: {
         Row: {
           attachments: Attachment[]
@@ -174,71 +122,7 @@ export type Database = {
         }
         Relationships: []
       }
-      Order: {
-        Row: {
-          checkoutid: string | null
-          createdat: string
-          id: number
-          priceid: string | null
-          status: Database["public"]["Enums"]["orderstatus"] | null
-          updatedat: string
-          userid: string | null
-        }
-        Insert: {
-          checkoutid?: string | null
-          createdat?: string
-          id?: number
-          priceid?: string | null
-          status?: Database["public"]["Enums"]["orderstatus"] | null
-          updatedat?: string
-          userid?: string | null
-        }
-        Update: {
-          checkoutid?: string | null
-          createdat?: string
-          id?: number
-          priceid?: string | null
-          status?: Database["public"]["Enums"]["orderstatus"] | null
-          updatedat?: string
-          userid?: string | null
-        }
-        Relationships: []
-      }
-      purchases: {
-        Row: {
-          amount: number
-          created_at: string | null
-          id: number
-          status: string
-          stripe_payment_id: string
-          user_id: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string | null
-          id?: number
-          status: string
-          stripe_payment_id: string
-          user_id: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string | null
-          id?: number
-          status?: string
-          stripe_payment_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "purchases_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+
       usage_history: {
         Row: {
           created_at: string | null
@@ -316,6 +200,35 @@ export type Database = {
         }
         Relationships: []
       }
+    }
+    feedback: {
+      Row: {
+        created_at: string | null
+        id: string
+        message: string
+        user_id: string
+      }
+      Insert: {
+        created_at?: string | null
+        id?: string
+        message: string
+        user_id: string
+      }
+      Update: {
+        created_at?: string | null
+        id?: string
+        message?: string
+        user_id?: string
+      }
+      Relationships: [
+        {
+          foreignKeyName: "feedback_user_id_fkey"
+          columns: ["user_id"]
+          isOneToOne: false
+          referencedRelation: "users"
+          referencedColumns: ["id"]
+        },
+      ]
     }
     Views: {
       [_ in never]: never
