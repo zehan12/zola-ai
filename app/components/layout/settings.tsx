@@ -20,7 +20,7 @@ import { SignOut, User, X } from "@phosphor-icons/react"
 import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 type UserType = Database["public"]["Tables"]["users"]["Row"]
 
@@ -29,16 +29,52 @@ interface SettingsProps {
   trigger?: React.ReactNode
 }
 
-export function Settings({ user, trigger }: SettingsProps) {
+export function Settings({ user: initialUser, trigger }: SettingsProps) {
   const [open, setOpen] = useState(false)
+  const [user, setUser] = useState<UserType>(initialUser)
   const isMobile = useBreakpoint(768)
+  const supabase = createClient()
 
-  const handleClose = () => setOpen(false)
+  // Fetch latest user data when dialog opens
+  const fetchUserData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", initialUser.id)
+        .single()
+
+      if (error) throw error
+      if (data) setUser(data)
+    } catch (err) {
+      console.error("Failed to fetch updated user data:", err)
+    }
+  }
+
+  const handleOpenChange = async (isOpen: boolean) => {
+    setOpen(isOpen)
+    if (isOpen) await fetchUserData()
+  }
+
+  const handleModelChange = async (value: string) => {
+    try {
+      const { error } = await supabase
+        .from("users")
+        .update({ preferred_model: value })
+        .eq("id", user.id)
+
+      if (error) throw error
+
+      setUser((prev) => ({ ...prev, preferred_model: value }))
+    } catch (err) {
+      console.error("Failed to update preferred model:", err)
+    }
+  }
 
   const defaultTrigger = (
     <DropdownMenuItem
       onSelect={(e) => e.preventDefault()}
-      onClick={() => setOpen(true)}
+      onClick={() => handleOpenChange(true)}
     >
       <User className="size-4" />
       <span>Settings</span>
@@ -47,23 +83,32 @@ export function Settings({ user, trigger }: SettingsProps) {
 
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={setOpen}>
+      <Drawer open={open} onOpenChange={handleOpenChange}>
         <DrawerTrigger asChild>{trigger || defaultTrigger}</DrawerTrigger>
         <DrawerContent>
-          <SettingsContent isDrawer onClose={handleClose} user={user} />
+          <SettingsContent
+            isDrawer
+            onClose={() => setOpen(false)}
+            user={user}
+            onModelChange={handleModelChange}
+          />
         </DrawerContent>
       </Drawer>
     )
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
       <DialogContent className="gap-0 p-0 sm:max-w-xl">
         <DialogHeader className="border-border border-b px-6 py-4">
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
-        <SettingsContent onClose={handleClose} user={user} />
+        <SettingsContent
+          onClose={() => setOpen(false)}
+          user={user}
+          onModelChange={handleModelChange}
+        />
       </DialogContent>
     </Dialog>
   )
@@ -73,35 +118,29 @@ function SettingsContent({
   onClose,
   isDrawer = false,
   user,
+  onModelChange,
 }: {
   onClose: () => void
   isDrawer?: boolean
   user: UserType
+  onModelChange: (value: string) => Promise<void>
 }) {
   const { theme, setTheme } = useTheme()
   const [selectedTheme, setSelectedTheme] = useState(theme || "system")
   const [selectedModelId, setSelectedModelId] = useState<string>(
     user?.preferred_model || MODEL_DEFAULT
   )
-  const supabase = createClient()
   const router = useRouter()
+  const supabase = createClient()
 
-  const handleModelChange = async (value: string) => {
+  // Update selectedModelId when user prop changes
+  useEffect(() => {
+    setSelectedModelId(user?.preferred_model || MODEL_DEFAULT)
+  }, [user?.preferred_model])
+
+  const handleModelSelection = async (value: string) => {
     setSelectedModelId(value)
-
-    try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from("users")
-        .update({ preferred_model: value })
-        .eq("id", user.id)
-
-      if (error) {
-        console.error("Error updating preferred model:", error)
-      }
-    } catch (err) {
-      console.error("Failed to update preferred model:", err)
-    }
+    await onModelChange(value)
   }
 
   const themes = [
@@ -222,28 +261,9 @@ function SettingsContent({
           <div className="relative">
             <ModelSelector
               selectedModelId={selectedModelId}
-              setSelectedModelId={handleModelChange}
+              setSelectedModelId={handleModelSelection}
               className="w-full"
             />
-            {/* <Select value={selectedModel} onValueChange={handleModelChange}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a model" />
-              </SelectTrigger>
-              <SelectContent>
-                {PROVIDERS.map((provider) => (
-                  <SelectGroup key={provider.id}>
-                    <SelectLabel>{provider.name}</SelectLabel>
-                    {MODELS.filter(
-                      (model) => model.provider === provider.id
-                    ).map((model) => (
-                      <SelectItem key={model.id} value={model.id}>
-                        {model.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ))}
-              </SelectContent>
-            </Select> */}
           </div>
           <p className="text-muted-foreground mt-2 text-xs">
             This model will be used by default for new conversations
