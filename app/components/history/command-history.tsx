@@ -106,7 +106,7 @@ export function CommandHistory({
         title="Chat History"
         description="Search through your past conversations"
       >
-        <Command>
+        <Command shouldFilter={false}>
           <CommandInput
             placeholder="Search history..."
             value={searchQuery}
@@ -115,8 +115,8 @@ export function CommandHistory({
           <CommandList className="max-h-[480px] min-h-[480px] flex-1">
             <CommandEmpty>No chat history found.</CommandEmpty>
             <CommandGroup className="p-1.5">
-              {filteredChat.map((chat, index) => (
-                <div key={index} className="px-0 py-1">
+              {filteredChat.map((chat) => (
+                <div key={chat.id} className="px-0 py-1">
                   {editingId === chat.id ? (
                     <div className="bg-accent flex items-center justify-between rounded-lg px-2 py-2">
                       <form
@@ -201,12 +201,14 @@ export function CommandHistory({
                     </div>
                   ) : (
                     <CommandItem
+                      key={chat.id}
                       onSelect={() => router.push(`/c/${chat.id}`)}
                       className={cn(
-                        "group flex w-full items-center justify-between rounded-md",
+                        "group hover:bg-accent! flex w-full items-center justify-between rounded-md data-[selected=true]:bg-transparent",
                         Boolean(editingId || deletingId) &&
-                          "data-[selected=true]:bg-transparent"
+                          "hover:bg-transparent! data-[selected=true]:bg-transparent"
                       )}
+                      value={chat.title}
                     >
                       <div className="min-w-0 flex-1">
                         <span className="line-clamp-1 text-base font-normal">
