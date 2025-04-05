@@ -113,7 +113,9 @@ export function CommandHistory({
             onValueChange={(value) => setSearchQuery(value)}
           />
           <CommandList className="max-h-[480px] min-h-[480px] flex-1">
-            <CommandEmpty>No chat history found.</CommandEmpty>
+            {filteredChat.length === 0 && (
+              <CommandEmpty>No chat history found.</CommandEmpty>
+            )}
             <CommandGroup className="p-1.5">
               {filteredChat.map((chat) => (
                 <div key={chat.id} className="px-0 py-1">
@@ -131,6 +133,12 @@ export function CommandHistory({
                           onChange={(e) => setEditTitle(e.target.value)}
                           className="border-input h-8 flex-1 rounded border bg-transparent px-3 py-1 text-sm"
                           autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault()
+                              handleSaveEdit(chat.id)
+                            }
+                          }}
                         />
                         <div className="ml-2 flex gap-1">
                           <Button
@@ -174,6 +182,9 @@ export function CommandHistory({
                               if (e.key === "Escape") {
                                 e.preventDefault()
                                 handleCancelDelete()
+                              } else if (e.key === "Enter") {
+                                e.preventDefault()
+                                handleConfirmDelete(chat.id)
                               }
                             }}
                           />
@@ -202,7 +213,11 @@ export function CommandHistory({
                   ) : (
                     <CommandItem
                       key={chat.id}
-                      onSelect={() => router.push(`/c/${chat.id}`)}
+                      onSelect={() => {
+                        if (!editingId && !deletingId) {
+                          router.push(`/c/${chat.id}`)
+                        }
+                      }}
                       className={cn(
                         "group hover:bg-accent! flex w-full items-center justify-between rounded-md data-[selected=true]:bg-transparent",
                         Boolean(editingId || deletingId) &&
