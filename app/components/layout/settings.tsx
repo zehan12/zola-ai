@@ -3,7 +3,7 @@
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import { AUTH_DAILY_MESSAGE_LIMIT, MODEL_DEFAULT } from "@/app/lib/config"
 import { createClient } from "@/app/lib/supabase/client"
-import type { Database } from "@/app/types/database.types"
+import { useUser } from "@/app/providers/user-provider"
 import { ModelSelector } from "@/components/common/model-selector"
 import { Button } from "@/components/ui/button"
 import {
@@ -22,62 +22,21 @@ import { useRouter } from "next/navigation"
 import type React from "react"
 import { useEffect, useState } from "react"
 
-type UserType = Database["public"]["Tables"]["users"]["Row"]
-
 interface SettingsProps {
-  user: UserType
   trigger?: React.ReactNode
 }
 
-export function Settings({ user: initialUser, trigger }: SettingsProps) {
+export function Settings({ trigger }: SettingsProps) {
+  const { user } = useUser()
   const [open, setOpen] = useState(false)
-  const [user, setUser] = useState<UserType>(initialUser)
-  const [isLoading, setIsLoading] = useState(true)
   const isMobile = useBreakpoint(768)
-  const supabase = createClient()
 
-  const fetchUserData = async () => {
-    setIsLoading(true)
-    try {
-      const { data, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", initialUser.id)
-        .single()
-
-      if (error) throw error
-      if (data) setUser(data)
-    } catch (err) {
-      console.error("Failed to fetch updated user data:", err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleOpenChange = async (isOpen: boolean) => {
-    setOpen(isOpen)
-    if (isOpen) await fetchUserData()
-  }
-
-  const handleModelChange = async (value: string) => {
-    try {
-      const { error } = await supabase
-        .from("users")
-        .update({ preferred_model: value })
-        .eq("id", user.id)
-
-      if (error) throw error
-
-      setUser((prev) => ({ ...prev, preferred_model: value }))
-    } catch (err) {
-      console.error("Failed to update preferred model:", err)
-    }
-  }
+  if (!user) return null
 
   const defaultTrigger = (
     <DropdownMenuItem
       onSelect={(e) => e.preventDefault()}
-      onClick={() => handleOpenChange(true)}
+      onClick={() => setOpen(true)}
     >
       <User className="size-4" />
       <span>Settings</span>
@@ -86,34 +45,23 @@ export function Settings({ user: initialUser, trigger }: SettingsProps) {
 
   if (isMobile) {
     return (
-      <Drawer open={open} onOpenChange={handleOpenChange}>
+      <Drawer open={open} onOpenChange={setOpen}>
         <DrawerTrigger asChild>{trigger || defaultTrigger}</DrawerTrigger>
         <DrawerContent>
-          <SettingsContent
-            isDrawer
-            onClose={() => setOpen(false)}
-            user={user}
-            onModelChange={handleModelChange}
-            isLoading={isLoading}
-          />
+          <SettingsContent isDrawer onClose={() => setOpen(false)} />
         </DrawerContent>
       </Drawer>
     )
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
       <DialogContent className="gap-0 p-0 sm:max-w-xl">
         <DialogHeader className="border-border border-b px-6 py-4">
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
-        <SettingsContent
-          onClose={() => setOpen(false)}
-          user={user}
-          onModelChange={handleModelChange}
-          isLoading={isLoading}
-        />
+        <SettingsContent onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   )
@@ -122,16 +70,11 @@ export function Settings({ user: initialUser, trigger }: SettingsProps) {
 function SettingsContent({
   onClose,
   isDrawer = false,
-  user,
-  onModelChange,
-  isLoading,
 }: {
   onClose: () => void
   isDrawer?: boolean
-  user: UserType
-  onModelChange: (value: string) => Promise<void>
-  isLoading?: boolean
 }) {
+  const { user, updateUser } = useUser()
   const { theme, setTheme } = useTheme()
   const [selectedTheme, setSelectedTheme] = useState(theme || "system")
   const [selectedModelId, setSelectedModelId] = useState<string>(
@@ -140,14 +83,20 @@ function SettingsContent({
   const router = useRouter()
   const supabase = createClient()
 
-  // Update selectedModelId when user prop changes
   useEffect(() => {
-    setSelectedModelId(user?.preferred_model || MODEL_DEFAULT)
+    if (user?.preferred_model) {
+      setSelectedModelId(user.preferred_model)
+    }
   }, [user?.preferred_model])
 
   const handleModelSelection = async (value: string) => {
     setSelectedModelId(value)
-    await onModelChange(value)
+    await updateUser({ preferred_model: value })
+  }
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.push("/")
   }
 
   const themes = [
@@ -155,6 +104,8 @@ function SettingsContent({
     { id: "light", name: "Light", colors: ["#ffffff"] },
     { id: "dark", name: "Dark", colors: ["#1a1a1a"] },
   ]
+
+  if (!user) return null
 
   return (
     <div
@@ -267,7 +218,7 @@ function SettingsContent({
           <h3 className="mb-3 text-sm font-medium">Preferred Model</h3>
           <div className="relative">
             <ModelSelector
-              selectedModelId={isLoading ? "" : selectedModelId}
+              selectedModelId={selectedModelId}
               setSelectedModelId={handleModelSelection}
               className="w-full"
             />
@@ -292,10 +243,7 @@ function SettingsContent({
               variant="secondary"
               size="sm"
               className="flex items-center gap-2"
-              onClick={() => {
-                supabase.auth.signOut()
-                router.push("/")
-              }}
+              onClick={handleSignOut}
             >
               <SignOut className="size-4" />
               <span>Sign out</span>
@@ -303,7 +251,6 @@ function SettingsContent({
           </div>
         </div>
       </div>
-
       {/* Delete Account, not ready yet */}
       {/* <div className="border-border border-t">
         <div className="px-6 py-4">
