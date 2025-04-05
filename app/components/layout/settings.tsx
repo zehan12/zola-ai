@@ -74,14 +74,13 @@ function SettingsContent({
   onClose: () => void
   isDrawer?: boolean
 }) {
-  const { user, updateUser } = useUser()
+  const { user, updateUser, signOut } = useUser()
   const { theme, setTheme } = useTheme()
   const [selectedTheme, setSelectedTheme] = useState(theme || "system")
   const [selectedModelId, setSelectedModelId] = useState<string>(
     user?.preferred_model || MODEL_DEFAULT
   )
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
     if (user?.preferred_model) {
@@ -95,7 +94,7 @@ function SettingsContent({
   }
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
+    await signOut()
     router.push("/")
   }
 

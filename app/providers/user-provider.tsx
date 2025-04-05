@@ -10,6 +10,7 @@ type UserContextType = {
   isLoading: boolean
   updateUser: (updates: Partial<UserProfile>) => Promise<void>
   refreshUser: () => Promise<void>
+  signOut: () => Promise<void>
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -73,6 +74,22 @@ export function UserProvider({
     }
   }
 
+  // Sign out and reset user state
+  const signOut = async () => {
+    setIsLoading(true)
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+
+      // Reset user state
+      setUser(null)
+    } catch (err) {
+      console.error("Failed to sign out:", err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   // Set up realtime subscription for user data changes
   useEffect(() => {
     if (!user?.id) return
@@ -102,7 +119,9 @@ export function UserProvider({
   }, [user?.id, supabase])
 
   return (
-    <UserContext.Provider value={{ user, isLoading, updateUser, refreshUser }}>
+    <UserContext.Provider
+      value={{ user, isLoading, updateUser, refreshUser, signOut }}
+    >
       {children}
     </UserContext.Provider>
   )
