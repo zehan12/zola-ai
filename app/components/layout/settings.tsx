@@ -32,11 +32,12 @@ interface SettingsProps {
 export function Settings({ user: initialUser, trigger }: SettingsProps) {
   const [open, setOpen] = useState(false)
   const [user, setUser] = useState<UserType>(initialUser)
+  const [isLoading, setIsLoading] = useState(true)
   const isMobile = useBreakpoint(768)
   const supabase = createClient()
 
-  // Fetch latest user data when dialog opens
   const fetchUserData = async () => {
+    setIsLoading(true)
     try {
       const { data, error } = await supabase
         .from("users")
@@ -48,6 +49,8 @@ export function Settings({ user: initialUser, trigger }: SettingsProps) {
       if (data) setUser(data)
     } catch (err) {
       console.error("Failed to fetch updated user data:", err)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -91,6 +94,7 @@ export function Settings({ user: initialUser, trigger }: SettingsProps) {
             onClose={() => setOpen(false)}
             user={user}
             onModelChange={handleModelChange}
+            isLoading={isLoading}
           />
         </DrawerContent>
       </Drawer>
@@ -108,6 +112,7 @@ export function Settings({ user: initialUser, trigger }: SettingsProps) {
           onClose={() => setOpen(false)}
           user={user}
           onModelChange={handleModelChange}
+          isLoading={isLoading}
         />
       </DialogContent>
     </Dialog>
@@ -119,11 +124,13 @@ function SettingsContent({
   isDrawer = false,
   user,
   onModelChange,
+  isLoading,
 }: {
   onClose: () => void
   isDrawer?: boolean
   user: UserType
   onModelChange: (value: string) => Promise<void>
+  isLoading?: boolean
 }) {
   const { theme, setTheme } = useTheme()
   const [selectedTheme, setSelectedTheme] = useState(theme || "system")
@@ -260,7 +267,7 @@ function SettingsContent({
           <h3 className="mb-3 text-sm font-medium">Preferred Model</h3>
           <div className="relative">
             <ModelSelector
-              selectedModelId={selectedModelId}
+              selectedModelId={isLoading ? "" : selectedModelId}
               setSelectedModelId={handleModelSelection}
               className="w-full"
             />
