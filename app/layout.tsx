@@ -5,6 +5,7 @@ import { APP_DESCRIPTION, APP_NAME } from "@/app/lib/config"
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "next-themes"
 import Script from "next/script"
+import { LayoutClient } from "./layout-client"
 import { createClient } from "./lib/supabase/server"
 import { UserProvider } from "./providers/user-provider"
 import { UserProfile } from "./types/user"
@@ -60,6 +61,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <LayoutClient />
         <UserProvider initialUser={userProfile}>
           <ThemeProvider
             attribute="class"
