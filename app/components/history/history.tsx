@@ -8,22 +8,20 @@ import {
   updateChatTitle,
 } from "@/lib/chat-store/history"
 import { ChatHistory } from "@/lib/chat-store/types"
-import { createClient } from "@/lib/supabase/client"
 import { useEffect, useState } from "react"
 import { CommandHistory } from "./command-history"
 import { DrawerHistory } from "./drawer-history"
 
-export function History() {
+type HistoryProps = {
+  userId: string
+}
+
+export function History({ userId }: HistoryProps) {
   const isMobile = useBreakpoint(768)
   const [chats, setChats] = useState<ChatHistory[]>([])
 
   useEffect(() => {
     const loadChats = async () => {
-      const supabase = createClient()
-      const { data: auth } = await supabase.auth.getUser()
-      const userId = auth?.user?.id
-      if (!userId) return
-
       setChats(await getCachedChats())
       const fresh = await fetchAndCacheChats(userId)
       setChats(fresh)

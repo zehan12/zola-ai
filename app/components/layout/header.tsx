@@ -35,7 +35,7 @@ export function Header() {
               userId={user.id}
               preferredModel={user.preferred_model!}
             />
-            <History />
+            <History userId={user.id} />
             <UserMenu user={user} />
           </div>
         )}
