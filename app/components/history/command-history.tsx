@@ -14,6 +14,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import type { ChatHistory } from "@/lib/chat-store/types"
 import { cn } from "@/lib/utils"
 import {
   Check,
@@ -24,7 +25,6 @@ import {
 } from "@phosphor-icons/react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import type { ChatHistory } from "./history"
 
 type CommandHistoryProps = {
   chatHistory: ChatHistory[]
@@ -56,7 +56,7 @@ export function CommandHistory({
 
   const handleEdit = (chat: ChatHistory) => {
     setEditingId(chat.id)
-    setEditTitle(chat.title)
+    setEditTitle(chat.title || "")
   }
 
   const handleSaveEdit = (id: string) => {
@@ -82,7 +82,7 @@ export function CommandHistory({
   }
 
   const filteredChat = chatHistory.filter((chat) =>
-    chat.title.toLowerCase().includes(searchQuery.toLowerCase())
+    (chat.title || "").toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (
@@ -223,7 +223,7 @@ export function CommandHistory({
                         Boolean(editingId || deletingId) &&
                           "hover:bg-transparent! data-[selected=true]:bg-transparent"
                       )}
-                      value={chat.title}
+                      value={chat.title || "Untitled Chat"}
                     >
                       <div className="min-w-0 flex-1">
                         <span className="line-clamp-1 text-base font-normal">
