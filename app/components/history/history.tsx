@@ -9,6 +9,7 @@ import {
   updateChatTitle,
 } from "@/lib/chat-store/history"
 import { ChatHistory } from "@/lib/chat-store/types"
+import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { CommandHistory } from "./command-history"
 import { DrawerHistory } from "./drawer-history"
@@ -20,6 +21,8 @@ type HistoryProps = {
 export function History({ userId }: HistoryProps) {
   const isMobile = useBreakpoint(768)
   const [chats, setChats] = useState<ChatHistory[]>([])
+  const params = useParams<{ chatId: string }>()
+  const router = useRouter()
 
   // @todo: we could prefetch chats earlier (e.g. during auth check or page load)
   useEffect(() => {
@@ -57,6 +60,10 @@ export function History({ userId }: HistoryProps) {
 
     try {
       await deleteChat(id)
+
+      if (params.chatId === id) {
+        router.push("/")
+      }
     } catch (err) {
       setChats(prev)
       toast({
