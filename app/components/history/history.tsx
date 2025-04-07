@@ -1,6 +1,7 @@
 "use client"
 
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
+import { toast } from "@/components/ui/toast"
 import {
   deleteChat,
   fetchAndCacheChats,
@@ -20,6 +21,7 @@ export function History({ userId }: HistoryProps) {
   const isMobile = useBreakpoint(768)
   const [chats, setChats] = useState<ChatHistory[]>([])
 
+  // @todo: we could prefetch chats earlier (e.g. during auth check or page load)
   useEffect(() => {
     const loadChats = async () => {
       setChats(await getCachedChats())
@@ -31,15 +33,37 @@ export function History({ userId }: HistoryProps) {
   }, [])
 
   const handleSaveEdit = async (id: string, newTitle: string) => {
-    await updateChatTitle(id, newTitle)
+    const prev = [...chats]
+
     setChats((prev) =>
       prev.map((chat) => (chat.id === id ? { ...chat, title: newTitle } : chat))
     )
+
+    try {
+      await updateChatTitle(id, newTitle)
+    } catch (err) {
+      setChats(prev)
+      toast({
+        title: "Failed to save title",
+        status: "error",
+      })
+    }
   }
 
   const handleConfirmDelete = async (id: string) => {
-    await deleteChat(id)
+    const prev = [...chats]
+
     setChats((prev) => prev.filter((chat) => chat.id !== id))
+
+    try {
+      await deleteChat(id)
+    } catch (err) {
+      setChats(prev)
+      toast({
+        title: "Failed to delete chat",
+        status: "error",
+      })
+    }
   }
 
   if (isMobile) {

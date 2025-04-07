@@ -51,9 +51,9 @@ export function DrawerHistory({
     setEditTitle(chat.title || "")
   }
 
-  const handleSaveEdit = (id: string) => {
-    onSaveEdit(id, editTitle)
+  const handleSaveEdit = async (id: string) => {
     setEditingId(null)
+    await onSaveEdit(id, editTitle)
   }
 
   const handleCancelEdit = () => {
@@ -64,9 +64,9 @@ export function DrawerHistory({
     setDeletingId(id)
   }
 
-  const handleConfirmDelete = (id: string) => {
-    onConfirmDelete(id)
+  const handleConfirmDelete = async (id: string) => {
     setDeletingId(null)
+    await onConfirmDelete(id)
   }
 
   const handleCancelDelete = () => {

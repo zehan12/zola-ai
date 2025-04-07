@@ -9,6 +9,7 @@ import {
   CommandList,
 } from "@/components/ui/command"
 import { Input } from "@/components/ui/input"
+import { toast } from "@/components/ui/toast"
 import {
   Tooltip,
   TooltipContent,
@@ -24,7 +25,7 @@ import {
   X,
 } from "@phosphor-icons/react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 type CommandHistoryProps = {
   chatHistory: ChatHistory[]
@@ -59,22 +60,23 @@ export function CommandHistory({
     setEditTitle(chat.title || "")
   }
 
-  const handleSaveEdit = (id: string) => {
-    onSaveEdit(id, editTitle)
+  const handleSaveEdit = async (id: string) => {
     setEditingId(null)
+    await onSaveEdit(id, editTitle)
   }
 
   const handleCancelEdit = () => {
     setEditingId(null)
+    setEditTitle("")
   }
 
   const handleDelete = (id: string) => {
     setDeletingId(id)
   }
 
-  const handleConfirmDelete = (id: string) => {
-    onConfirmDelete(id)
+  const handleConfirmDelete = async (id: string) => {
     setDeletingId(null)
+    await onConfirmDelete(id)
   }
 
   const handleCancelDelete = () => {
