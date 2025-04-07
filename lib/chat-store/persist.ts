@@ -64,3 +64,9 @@ export async function deleteFromIndexedDB(
     await delMany(allKeys as string[], store)
   }
 }
+
+export async function clearAllIndexedDBStores() {
+  await deleteFromIndexedDB("chats")
+  await deleteFromIndexedDB("messages")
+  await deleteFromIndexedDB("sync")
+}

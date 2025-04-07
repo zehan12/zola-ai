@@ -10,6 +10,7 @@ import {
   getCachedChats,
   updateChatTitle,
 } from "./history"
+import { clearAllIndexedDBStores } from "./persist"
 import type { ChatHistory } from "./types"
 
 interface ChatHistoryContextType {
@@ -29,6 +30,7 @@ interface ChatHistoryContextType {
     isAuthenticated?: boolean,
     systemPrompt?: string
   ) => Promise<ChatHistory | undefined>
+  resetHistory: () => Promise<void>
 }
 const ChatHistoryContext = createContext<ChatHistoryContextType | null>(null)
 
@@ -136,6 +138,11 @@ export function ChatHistoryProvider({
     }
   }
 
+  const resetHistory = async () => {
+    setChats([])
+    await clearAllIndexedDBStores()
+  }
+
   return (
     <ChatHistoryContext.Provider
       value={{
@@ -145,6 +152,7 @@ export function ChatHistoryProvider({
         deleteChat,
         setChats,
         createNewChat,
+        resetHistory,
       }}
     >
       {children}
