@@ -1,76 +1,23 @@
 "use client"
 
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
-import { toast } from "@/components/ui/toast"
-import {
-  deleteChat,
-  fetchAndCacheChats,
-  getCachedChats,
-  updateChatTitle,
-} from "@/lib/chat-store/history"
-import { ChatHistory } from "@/lib/chat-store/types"
+import { useChatHistory } from "@/lib/chat-store/chat-history-provider"
 import { useParams, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
 import { CommandHistory } from "./command-history"
 import { DrawerHistory } from "./drawer-history"
 
-type HistoryProps = {
-  userId: string
-}
-
-export function History({ userId }: HistoryProps) {
+export function History() {
   const isMobile = useBreakpoint(768)
-  const [chats, setChats] = useState<ChatHistory[]>([])
   const params = useParams<{ chatId: string }>()
   const router = useRouter()
-
-  // @todo: we could prefetch chats earlier (e.g. during auth check or page load)
-  useEffect(() => {
-    const loadChats = async () => {
-      setChats(await getCachedChats())
-      const fresh = await fetchAndCacheChats(userId)
-      setChats(fresh)
-    }
-
-    loadChats()
-  }, [])
+  const { chats, updateTitle, deleteChat } = useChatHistory()
 
   const handleSaveEdit = async (id: string, newTitle: string) => {
-    const prev = [...chats]
-
-    setChats((prev) =>
-      prev.map((chat) => (chat.id === id ? { ...chat, title: newTitle } : chat))
-    )
-
-    try {
-      await updateChatTitle(id, newTitle)
-    } catch (err) {
-      setChats(prev)
-      toast({
-        title: "Failed to save title",
-        status: "error",
-      })
-    }
+    await updateTitle(id, newTitle)
   }
 
   const handleConfirmDelete = async (id: string) => {
-    const prev = [...chats]
-
-    setChats((prev) => prev.filter((chat) => chat.id !== id))
-
-    try {
-      await deleteChat(id)
-
-      if (params.chatId === id) {
-        router.push("/")
-      }
-    } catch (err) {
-      setChats(prev)
-      toast({
-        title: "Failed to delete chat",
-        status: "error",
-      })
-    }
+    await deleteChat(id, params.chatId, () => router.push("/"))
   }
 
   if (isMobile) {

@@ -31,11 +31,8 @@ export function Header() {
           </div>
         ) : (
           <div className="flex items-center gap-4">
-            <ButtonNewChat
-              userId={user.id}
-              preferredModel={user.preferred_model!}
-            />
-            <History userId={user.id} />
+            <ButtonNewChat />
+            <History />
             <UserMenu user={user} />
           </div>
         )}
