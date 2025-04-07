@@ -1,8 +1,8 @@
 // /chat/api/chat.ts
-import { checkUsage, incrementUsage } from "@/app/lib/api"
-import { MODELS } from "@/app/lib/config"
-import { sanitizeUserInput } from "@/app/lib/sanitize"
-import { validateUserIdentity } from "@/app/lib/server/api"
+import { checkUsage, incrementUsage } from "@/lib/api"
+import { MODELS } from "@/lib/config"
+import { sanitizeUserInput } from "@/lib/sanitize"
+import { validateUserIdentity } from "@/lib/server/api"
 import { Attachment } from "@ai-sdk/ui-utils"
 import { Message, streamText } from "ai"
 

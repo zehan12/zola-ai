@@ -1,4 +1,4 @@
-import { APP_DOMAIN, MODEL_DEFAULT } from "@/app/lib/config"
+import { APP_DOMAIN, MODEL_DEFAULT } from "@/lib/config"
 import { SupabaseClient } from "@supabase/supabase-js"
 import {
   AUTH_DAILY_MESSAGE_LIMIT,

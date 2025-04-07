@@ -1,6 +1,6 @@
 import { updateSession } from "@/utils/supabase/middleware"
 import { NextResponse, type NextRequest } from "next/server"
-import { validateCsrfToken } from "./app/lib/csrf"
+import { validateCsrfToken } from "./lib/csrf"
 
 export async function middleware(request: NextRequest) {
   const response = await updateSession(request)
