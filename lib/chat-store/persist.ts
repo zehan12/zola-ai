@@ -10,9 +10,18 @@ import {
 } from "idb-keyval"
 
 let dbReady = false
+let dbInitPromise: Promise<void> | null = null
+let stores: Record<string, any> = {}
+
+// Only run on client side
+const isClient = typeof window !== "undefined"
 
 // Initialize the database with proper versioning
 function initDatabase() {
+  if (!isClient) {
+    return Promise.resolve()
+  }
+
   return new Promise<void>((resolve, reject) => {
     // Check current version first
     const checkRequest = indexedDB.open("zola-db")
@@ -58,32 +67,35 @@ function initDatabase() {
   })
 }
 
-// Call initialization function
-const dbInitPromise = initDatabase()
+// Initialize only on client side
+if (isClient) {
+  dbInitPromise = initDatabase()
 
-// Modify your existing functions to wait for DB initialization
+  // Define stores AFTER DB is initialized
+  dbInitPromise.then(() => {
+    stores = {
+      chats: createStore("zola-db", "chats"),
+      messages: createStore("zola-db", "messages"),
+      sync: createStore("zola-db", "sync"),
+    }
+  })
+}
+
+// Ensure DB is ready before operations (client-side only)
 async function ensureDbReady() {
-  if (!dbReady) {
+  if (!isClient) return
+  if (!dbReady && dbInitPromise) {
     await dbInitPromise
   }
 }
-
-// Define stores AFTER DB is initialized
-let stores: Record<string, any> = {}
-
-dbInitPromise.then(() => {
-  stores = {
-    chats: createStore("zola-db", "chats"),
-    messages: createStore("zola-db", "messages"),
-    sync: createStore("zola-db", "sync"),
-  }
-})
 
 // read one or all items from a store
 export async function readFromIndexedDB<T>(
   table: "chats" | "messages" | "sync",
   key?: string
 ): Promise<T | T[]> {
+  if (!isClient) return key ? (null as any) : []
+
   await ensureDbReady()
   try {
     const store = stores[table]
@@ -106,6 +118,8 @@ export async function writeToIndexedDB<T extends { id: string | number }>(
   table: "chats" | "messages" | "sync",
   data: T | T[]
 ): Promise<void> {
+  if (!isClient) return
+
   await ensureDbReady()
   try {
     const store = stores[table]
@@ -121,20 +135,29 @@ export async function writeToIndexedDB<T extends { id: string | number }>(
 
 // delete one or all items from a store
 export async function deleteFromIndexedDB(
-  table: keyof typeof stores,
+  table: "chats" | "messages" | "sync",
   key?: string
 ): Promise<void> {
-  const store = stores[table]
+  if (!isClient) return
 
-  if (key) {
-    await del(key, store)
-  } else {
-    const allKeys = await keys(store)
-    await delMany(allKeys as string[], store)
+  await ensureDbReady()
+  try {
+    const store = stores[table]
+    if (key) {
+      await del(key, store)
+    } else {
+      const allKeys = await keys(store)
+      await delMany(allKeys as string[], store)
+    }
+  } catch (error) {
+    console.error(`Error deleting from IndexedDB store '${table}':`, error)
   }
 }
 
 export async function clearAllIndexedDBStores() {
+  if (!isClient) return
+
+  await ensureDbReady()
   await deleteFromIndexedDB("chats")
   await deleteFromIndexedDB("messages")
   await deleteFromIndexedDB("sync")
