@@ -2,6 +2,7 @@
 
 import { toast } from "@/components/ui/toast"
 import { createContext, useContext, useEffect, useState } from "react"
+import { MODEL_DEFAULT, SYSTEM_PROMPT_DEFAULT } from "../config"
 import { createNewChat as createNewChatFromDb } from "./chat"
 import {
   deleteChat as deleteChatFromDb,
@@ -30,6 +31,7 @@ interface ChatHistoryContextType {
     systemPrompt?: string
   ) => Promise<ChatHistory | undefined>
   resetHistory: () => Promise<void>
+  getChatById: (id: string) => ChatHistory | undefined
 }
 const ChatHistoryContext = createContext<ChatHistoryContextType | null>(null)
 
@@ -109,8 +111,10 @@ export function ChatHistoryProvider({
     const optimisticId = `optimistic-${Date.now().toString()}`
     const optimisticChat = {
       id: optimisticId,
-      title: "New Chat",
+      title: title || "New Chat",
       created_at: new Date().toISOString(),
+      model: model || MODEL_DEFAULT,
+      system_prompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
     }
     setChats((prev) => [...prev, optimisticChat])
 
@@ -142,6 +146,11 @@ export function ChatHistoryProvider({
     await clearAllIndexedDBStores()
   }
 
+  const getChatById = (id: string) => {
+    const chat = chats.find((c) => c.id === id)
+    return chat
+  }
+
   return (
     <ChatHistoryContext.Provider
       value={{
@@ -152,6 +161,7 @@ export function ChatHistoryProvider({
         setChats,
         createNewChat,
         resetHistory,
+        getChatById,
       }}
     >
       {children}

@@ -36,43 +36,23 @@ const DialogAuth = dynamic(
 )
 
 type ChatProps = {
-  // initialMessages?: Message[]
   chatId?: string
-  // preferredModel?: string
-  // systemPrompt?: string
 }
 
-export default function Chat({
-  // initialMessages,
-  chatId: propChatId,
-  // preferredModel,
-  // systemPrompt: propSystemPrompt,
-}: ChatProps) {
-  // @todo: use prompt from chat
-  const { createNewChat, chats } = useChatHistory()
-  const {
-    messages: initialMessages,
-    cacheAndAddMessage,
-    // refresh,
-    // reset,
-    addMessage,
-    // saveAllMessages,
-  } = useChatMessages()
+export default function Chat({ chatId: propChatId }: ChatProps) {
+  const { createNewChat, getChatById } = useChatHistory()
+  const currentChat = propChatId ? getChatById(propChatId) : null
+  const { messages: initialMessages, cacheAndAddMessage } = useChatMessages()
   const { user } = useUser()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasDialogAuth, setHasDialogAuth] = useState(false)
   const [chatId, setChatId] = useState<string | null>(propChatId || null)
   const [files, setFiles] = useState<File[]>([])
-  // const [selectedModel, setSelectedModel] = useState(
-  //   preferredModel || user?.preferred_model || MODEL_DEFAULT
-  // )
-  // const [systemPrompt, setSystemPrompt] = useState(propSystemPrompt)
-  // @todo: get preferred model from chat history, add it to the chat history
   const [selectedModel, setSelectedModel] = useState(
-    user?.preferred_model || MODEL_DEFAULT
+    currentChat?.model || user?.preferred_model || MODEL_DEFAULT
   )
   const [systemPrompt, setSystemPrompt] = useState(
-    user?.preferred_model || MODEL_DEFAULT
+    currentChat?.system_prompt || SYSTEM_PROMPT_DEFAULT
   )
 
   const isAuthenticated = !!user?.id
@@ -90,10 +70,8 @@ export default function Chat({
   } = useChat({
     api: API_ROUTE_CHAT,
     initialMessages,
-    // save assistant messages data layer
+    // save assistant to messages data layer
     onFinish: async (message) => {
-      console.log("onFinish message", message)
-
       if (!chatId) return
       await cacheAndAddMessage(message)
     },

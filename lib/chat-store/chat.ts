@@ -91,6 +91,8 @@ export async function createNewChat(
       id: responseData.chat.id,
       title: responseData.chat.title,
       created_at: responseData.chat.created_at,
+      model: responseData.chat.model,
+      system_prompt: responseData.chat.system_prompt,
     }
     await writeToIndexedDB("chats", chat)
 

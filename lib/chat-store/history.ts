@@ -16,7 +16,7 @@ export async function fetchAndCacheChats(
 
   const { data, error } = await supabase
     .from("chats")
-    .select("id, title, created_at")
+    .select("id, title, created_at, model, system_prompt")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
 
