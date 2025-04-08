@@ -3,7 +3,7 @@
 import { toast } from "@/components/ui/toast"
 import type { Message as MessageAISDK } from "ai"
 import { createContext, useContext, useEffect, useState } from "react"
-import { writeToIndexedDB } from "../persist"
+import { clearAllIndexedDBStores, writeToIndexedDB } from "../persist"
 import {
   addMessage,
   clearMessagesForChat,
@@ -20,6 +20,7 @@ interface MessagesContextType {
   addMessage: (message: MessageAISDK) => Promise<void>
   saveAllMessages: (messages: MessageAISDK[]) => Promise<void>
   cacheAndAddMessage: (message: MessageAISDK) => Promise<void>
+  resetMessages: () => Promise<void>
 }
 
 const MessagesContext = createContext<MessagesContextType | null>(null)
@@ -110,6 +111,11 @@ export function MessagesProvider({
     }
   }
 
+  const resetMessages = async () => {
+    setMessages([])
+    await clearAllIndexedDBStores()
+  }
+
   return (
     <MessagesContext.Provider
       value={{
@@ -120,6 +126,7 @@ export function MessagesProvider({
         addMessage: addSingleMessage,
         saveAllMessages,
         cacheAndAddMessage,
+        resetMessages,
       }}
     >
       {children}

@@ -19,10 +19,10 @@ export default async function PrivatePage({
   }
 
   return (
-    <LayoutApp>
-      <MessagesProvider chatId={chatId}>
+    <MessagesProvider chatId={chatId}>
+      <LayoutApp>
         <Chat chatId={chatId} />
-      </MessagesProvider>
-    </LayoutApp>
+      </LayoutApp>
+    </MessagesProvider>
   )
 }

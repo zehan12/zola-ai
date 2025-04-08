@@ -31,7 +31,7 @@ interface ChatsContextType {
     isAuthenticated?: boolean,
     systemPrompt?: string
   ) => Promise<Chats | undefined>
-  resetHistory: () => Promise<void>
+  resetChats: () => Promise<void>
   getChatById: (id: string) => Chats | undefined
   updateChatModel: (id: string, model: string) => Promise<void>
 }
@@ -142,7 +142,7 @@ export function ChatsProvider({
     }
   }
 
-  const resetHistory = async () => {
+  const resetChats = async () => {
     setChats([])
     await clearAllIndexedDBStores()
   }
@@ -165,7 +165,7 @@ export function ChatsProvider({
         deleteChat,
         setChats,
         createNewChat,
-        resetHistory,
+        resetChats,
         getChatById,
         updateChatModel,
       }}

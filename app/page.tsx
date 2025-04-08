@@ -4,10 +4,10 @@ import LayoutApp from "./components/layout/layout-app"
 
 export default async function Home() {
   return (
-    <LayoutApp>
-      <MessagesProvider>
+    <MessagesProvider>
+      <LayoutApp>
         <Chat />
-      </MessagesProvider>
-    </LayoutApp>
+      </LayoutApp>
+    </MessagesProvider>
   )
 }
