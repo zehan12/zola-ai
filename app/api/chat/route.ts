@@ -41,7 +41,7 @@ export async function POST(req: Request) {
         chat_id: chatId,
         role: "user",
         content: sanitizeUserInput(userMessage.content),
-        attachments:
+        experimental_attachments:
           userMessage.experimental_attachments as unknown as Attachment[],
         user_id: userId,
       })

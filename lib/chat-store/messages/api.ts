@@ -42,11 +42,14 @@ export async function fetchAndCacheMessages(
     createdAt: new Date(message.created_at || ""),
   }))
 
-  await writeToIndexedDB("messages", {
-    id: chatId,
-    messages: formattedMessages,
-  })
   return formattedMessages
+}
+
+export async function cacheMessages(
+  chatId: string,
+  messages: MessageAISDK[]
+): Promise<void> {
+  await writeToIndexedDB("messages", { id: chatId, messages })
 }
 
 export async function addMessage(

@@ -6,6 +6,7 @@ import { createContext, useContext, useEffect, useState } from "react"
 import { clearAllIndexedDBStores, writeToIndexedDB } from "../persist"
 import {
   addMessage,
+  cacheMessages,
   clearMessagesForChat,
   fetchAndCacheMessages,
   getCachedMessages,
@@ -51,6 +52,7 @@ export function MessagesProvider({
       try {
         const fresh = await fetchAndCacheMessages(chatId)
         setMessages(fresh)
+        cacheMessages(chatId, fresh)
       } catch (error) {
         console.error("Failed to fetch messages:", error)
       }
