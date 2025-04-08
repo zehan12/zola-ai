@@ -1,9 +1,10 @@
 "use client"
 
 import { toast } from "@/components/ui/toast"
-import type { Message } from "ai"
+import type { Message as MessageAISDK } from "ai"
 import { createContext, useContext, useEffect, useState } from "react"
 import { writeToIndexedDB } from "../persist"
+import type { Message as MessageSupabase } from "../types"
 import {
   addMessage,
   clearMessagesForChat,
@@ -13,13 +14,13 @@ import {
 } from "./api"
 
 interface ChatMessagesContextType {
-  messages: Message[]
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>
+  messages: MessageAISDK[]
+  setMessages: React.Dispatch<React.SetStateAction<MessageAISDK[]>>
   refresh: () => Promise<void>
   reset: () => Promise<void>
-  addMessage: (message: Message) => Promise<void>
-  saveAllMessages: (messages: Message[]) => Promise<void>
-  cacheAndAddMessage: (message: Message) => Promise<void>
+  addMessage: (message: MessageAISDK) => Promise<void>
+  saveAllMessages: (messages: MessageAISDK[]) => Promise<void>
+  cacheAndAddMessage: (message: MessageAISDK) => Promise<void>
 }
 
 const ChatMessagesContext = createContext<ChatMessagesContextType | null>(null)
@@ -38,7 +39,7 @@ export function ChatMessagesProvider({
   chatId?: string
   children: React.ReactNode
 }) {
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<MessageAISDK[]>([])
 
   useEffect(() => {
     if (!chatId) return
@@ -76,7 +77,7 @@ export function ChatMessagesProvider({
     await clearMessagesForChat(chatId)
   }
 
-  const addSingleMessage = async (message: Message) => {
+  const addSingleMessage = async (message: MessageAISDK) => {
     if (!chatId) return
 
     try {
@@ -87,7 +88,7 @@ export function ChatMessagesProvider({
     }
   }
 
-  const cacheAndAddMessage = async (message: Message) => {
+  const cacheAndAddMessage = async (message: MessageAISDK) => {
     if (!chatId) return
 
     try {
@@ -99,7 +100,7 @@ export function ChatMessagesProvider({
     }
   }
 
-  const saveAllMessages = async (newMessages: Message[]) => {
+  const saveAllMessages = async (newMessages: MessageAISDK[]) => {
     if (!chatId) return
 
     try {

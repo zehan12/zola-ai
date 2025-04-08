@@ -1,13 +1,16 @@
 import { createClient } from "@/lib/supabase/client"
-import { Message } from "ai"
+import type { Message as MessageAISDK } from "ai"
 import { readFromIndexedDB, writeToIndexedDB } from "../persist"
+import type { Message } from "../types"
 
 type ChatMessageEntry = {
   id: string
-  messages: Message[]
+  messages: MessageAISDK[]
 }
 
-export async function getCachedMessages(chatId: string): Promise<Message[]> {
+export async function getCachedMessages(
+  chatId: string
+): Promise<MessageAISDK[]> {
   const entry = await readFromIndexedDB<ChatMessageEntry>("messages", chatId)
 
   if (!entry || Array.isArray(entry)) return []
@@ -19,12 +22,12 @@ export async function getCachedMessages(chatId: string): Promise<Message[]> {
 
 export async function fetchAndCacheMessages(
   chatId: string
-): Promise<Message[]> {
+): Promise<MessageAISDK[]> {
   const supabase = createClient()
 
   const { data, error } = await supabase
     .from("messages")
-    .select("id, content, role, attachments, created_at")
+    .select("id, content, role, experimental_attachments, created_at")
     .eq("chat_id", chatId)
     .order("created_at", { ascending: true })
 
@@ -33,11 +36,9 @@ export async function fetchAndCacheMessages(
     return []
   }
 
-  const formattedMessages: Message[] = data.map((message) => ({
+  const formattedMessages = data.map((message) => ({
+    ...message,
     id: String(message.id),
-    content: message.content,
-    role: message.role,
-    experimental_attachments: message.attachments,
     createdAt: new Date(message.created_at || ""),
   }))
 
@@ -50,7 +51,7 @@ export async function fetchAndCacheMessages(
 
 export async function addMessage(
   chatId: string,
-  message: Message
+  message: MessageAISDK
 ): Promise<void> {
   const supabase = createClient()
 
@@ -58,7 +59,7 @@ export async function addMessage(
     chat_id: chatId,
     role: message.role,
     content: message.content,
-    attachments: message.experimental_attachments,
+    experimental_attachments: message.experimental_attachments,
     created_at: message.createdAt?.toISOString() || new Date().toISOString(),
   })
 
@@ -69,7 +70,7 @@ export async function addMessage(
 
 export async function setMessages(
   chatId: string,
-  messages: Message[]
+  messages: MessageAISDK[]
 ): Promise<void> {
   const supabase = createClient()
 
@@ -77,7 +78,7 @@ export async function setMessages(
     chat_id: chatId,
     role: message.role,
     content: message.content,
-    attachments: message.experimental_attachments,
+    experimental_attachments: message.experimental_attachments,
     created_at: message.createdAt?.toISOString() || new Date().toISOString(),
   }))
 

@@ -4,13 +4,13 @@ import { MODELS } from "@/lib/config"
 import { sanitizeUserInput } from "@/lib/sanitize"
 import { validateUserIdentity } from "@/lib/server/api"
 import { Attachment } from "@ai-sdk/ui-utils"
-import { Message, streamText } from "ai"
+import { Message as MessageAISDK, streamText } from "ai"
 
 // Maximum allowed duration for streaming (in seconds)
 export const maxDuration = 30
 
 type ChatRequest = {
-  messages: Message[]
+  messages: MessageAISDK[]
   chatId: string
   userId: string
   model: string
