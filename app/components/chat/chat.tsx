@@ -5,8 +5,8 @@ import { Conversation } from "@/app/components/chat/conversation"
 import { useUser } from "@/app/providers/user-provider"
 import { toast } from "@/components/ui/toast"
 import { checkRateLimits, createGuestUser } from "@/lib/api"
-import { useChatHistory } from "@/lib/chat-store/chats/provider"
-import { useChatMessages } from "@/lib/chat-store/messages/provider"
+import { useChats } from "@/lib/chat-store/chats/provider"
+import { useMessages } from "@/lib/chat-store/messages/provider"
 import {
   MESSAGE_MAX_LENGTH,
   MODEL_DEFAULT,
@@ -40,9 +40,9 @@ type ChatProps = {
 }
 
 export default function Chat({ chatId: propChatId }: ChatProps) {
-  const { createNewChat, getChatById, updateChatModel } = useChatHistory()
+  const { createNewChat, getChatById, updateChatModel } = useChats()
   const currentChat = propChatId ? getChatById(propChatId) : null
-  const { messages: initialMessages, cacheAndAddMessage } = useChatMessages()
+  const { messages: initialMessages, cacheAndAddMessage } = useMessages()
   const { user } = useUser()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasDialogAuth, setHasDialogAuth] = useState(false)

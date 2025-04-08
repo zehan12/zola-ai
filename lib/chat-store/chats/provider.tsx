@@ -4,7 +4,7 @@ import { toast } from "@/components/ui/toast"
 import { createContext, useContext, useEffect, useState } from "react"
 import { MODEL_DEFAULT, SYSTEM_PROMPT_DEFAULT } from "../../config"
 import { clearAllIndexedDBStores } from "../persist"
-import type { ChatHistory } from "../types"
+import type { Chats } from "../types"
 import {
   createNewChat as createNewChatFromDb,
   deleteChat as deleteChatFromDb,
@@ -14,8 +14,8 @@ import {
   updateChatTitle,
 } from "./api"
 
-interface ChatHistoryContextType {
-  chats: ChatHistory[]
+interface ChatsContextType {
+  chats: Chats[]
   refresh: () => Promise<void>
   updateTitle: (id: string, title: string) => Promise<void>
   deleteChat: (
@@ -23,35 +23,34 @@ interface ChatHistoryContextType {
     currentChatId?: string,
     redirect?: () => void
   ) => Promise<void>
-  setChats: React.Dispatch<React.SetStateAction<ChatHistory[]>>
+  setChats: React.Dispatch<React.SetStateAction<Chats[]>>
   createNewChat: (
     userId: string,
     title?: string,
     model?: string,
     isAuthenticated?: boolean,
     systemPrompt?: string
-  ) => Promise<ChatHistory | undefined>
+  ) => Promise<Chats | undefined>
   resetHistory: () => Promise<void>
-  getChatById: (id: string) => ChatHistory | undefined
+  getChatById: (id: string) => Chats | undefined
   updateChatModel: (id: string, model: string) => Promise<void>
 }
-const ChatHistoryContext = createContext<ChatHistoryContextType | null>(null)
+const ChatsContext = createContext<ChatsContextType | null>(null)
 
-export function useChatHistory() {
-  const context = useContext(ChatHistoryContext)
-  if (!context)
-    throw new Error("useChatHistory must be used within ChatHistoryProvider")
+export function useChats() {
+  const context = useContext(ChatsContext)
+  if (!context) throw new Error("useChats must be used within ChatsProvider")
   return context
 }
 
-export function ChatHistoryProvider({
+export function ChatsProvider({
   userId,
   children,
 }: {
   userId?: string
   children: React.ReactNode
 }) {
-  const [chats, setChats] = useState<ChatHistory[]>([])
+  const [chats, setChats] = useState<Chats[]>([])
 
   useEffect(() => {
     if (!userId) return
@@ -158,7 +157,7 @@ export function ChatHistoryProvider({
   }
 
   return (
-    <ChatHistoryContext.Provider
+    <ChatsContext.Provider
       value={{
         chats,
         refresh,
@@ -172,6 +171,6 @@ export function ChatHistoryProvider({
       }}
     >
       {children}
-    </ChatHistoryContext.Provider>
+    </ChatsContext.Provider>
   )
 }

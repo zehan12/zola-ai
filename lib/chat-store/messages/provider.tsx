@@ -4,7 +4,6 @@ import { toast } from "@/components/ui/toast"
 import type { Message as MessageAISDK } from "ai"
 import { createContext, useContext, useEffect, useState } from "react"
 import { writeToIndexedDB } from "../persist"
-import type { Message as MessageSupabase } from "../types"
 import {
   addMessage,
   clearMessagesForChat,
@@ -13,7 +12,7 @@ import {
   setMessages as saveMessages,
 } from "./api"
 
-interface ChatMessagesContextType {
+interface MessagesContextType {
   messages: MessageAISDK[]
   setMessages: React.Dispatch<React.SetStateAction<MessageAISDK[]>>
   refresh: () => Promise<void>
@@ -23,16 +22,16 @@ interface ChatMessagesContextType {
   cacheAndAddMessage: (message: MessageAISDK) => Promise<void>
 }
 
-const ChatMessagesContext = createContext<ChatMessagesContextType | null>(null)
+const MessagesContext = createContext<MessagesContextType | null>(null)
 
-export function useChatMessages() {
-  const context = useContext(ChatMessagesContext)
+export function useMessages() {
+  const context = useContext(MessagesContext)
   if (!context)
-    throw new Error("useChatMessages must be used within ChatMessagesProvider")
+    throw new Error("useMessages must be used within MessagesProvider")
   return context
 }
 
-export function ChatMessagesProvider({
+export function MessagesProvider({
   chatId,
   children,
 }: {
@@ -112,7 +111,7 @@ export function ChatMessagesProvider({
   }
 
   return (
-    <ChatMessagesContext.Provider
+    <MessagesContext.Provider
       value={{
         messages,
         setMessages,
@@ -124,6 +123,6 @@ export function ChatMessagesProvider({
       }}
     >
       {children}
-    </ChatMessagesContext.Provider>
+    </MessagesContext.Provider>
   )
 }

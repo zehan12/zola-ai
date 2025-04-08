@@ -1,5 +1,5 @@
 import { readFromIndexedDB, writeToIndexedDB } from "@/lib/chat-store/persist"
-import type { Chat, ChatHistory } from "@/lib/chat-store/types"
+import type { Chat, Chats } from "@/lib/chat-store/types"
 import { createClient } from "@/lib/supabase/client"
 import { MODEL_DEFAULT, SYSTEM_PROMPT_DEFAULT } from "../../config"
 import { fetchClient } from "../../fetch"
@@ -8,16 +8,14 @@ import {
   API_ROUTE_UPDATE_CHAT_MODEL,
 } from "../../routes"
 
-export async function getCachedChats(): Promise<ChatHistory[]> {
-  const all = await readFromIndexedDB<ChatHistory>("chats")
-  return (all as ChatHistory[]).sort(
+export async function getCachedChats(): Promise<Chats[]> {
+  const all = await readFromIndexedDB<Chats>("chats")
+  return (all as Chats[]).sort(
     (a, b) => +new Date(b.created_at || "") - +new Date(a.created_at || "")
   )
 }
 
-export async function fetchAndCacheChats(
-  userId: string
-): Promise<ChatHistory[]> {
+export async function fetchAndCacheChats(userId: string): Promise<Chats[]> {
   const supabase = createClient()
 
   const { data, error } = await supabase
@@ -44,7 +42,7 @@ export async function updateChatTitle(
   if (error) throw error
 
   const all = await getCachedChats()
-  const updated = (all as ChatHistory[]).map((c) =>
+  const updated = (all as Chats[]).map((c) =>
     c.id === id ? { ...c, title } : c
   )
   await writeToIndexedDB("chats", updated)
@@ -58,7 +56,7 @@ export async function deleteChat(id: string): Promise<void> {
   const all = await getCachedChats()
   await writeToIndexedDB(
     "chats",
-    (all as ChatHistory[]).filter((c) => c.id !== id)
+    (all as Chats[]).filter((c) => c.id !== id)
   )
 }
 
@@ -125,7 +123,7 @@ export async function updateChatModel(chatId: string, model: string) {
     }
 
     const all = await getCachedChats()
-    const updated = (all as ChatHistory[]).map((c) =>
+    const updated = (all as Chats[]).map((c) =>
       c.id === chatId ? { ...c, model } : c
     )
     await writeToIndexedDB("chats", updated)
@@ -143,7 +141,7 @@ export async function createNewChat(
   model?: string,
   isAuthenticated?: boolean,
   systemPrompt?: string
-): Promise<ChatHistory> {
+): Promise<Chats> {
   try {
     const res = await fetchClient(API_ROUTE_CREATE_CHAT, {
       method: "POST",
@@ -163,7 +161,7 @@ export async function createNewChat(
       throw new Error(responseData.error || "Failed to create chat")
     }
 
-    const chat: ChatHistory = {
+    const chat: Chats = {
       id: responseData.chat.id,
       title: responseData.chat.title,
       created_at: responseData.chat.created_at,

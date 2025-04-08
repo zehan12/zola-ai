@@ -1,4 +1,4 @@
-import { ChatMessagesProvider } from "@/lib/chat-store/messages/provider"
+import { MessagesProvider } from "@/lib/chat-store/messages/provider"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Chat from "../../components/chat/chat"
@@ -20,9 +20,9 @@ export default async function PrivatePage({
 
   return (
     <LayoutApp>
-      <ChatMessagesProvider chatId={chatId}>
+      <MessagesProvider chatId={chatId}>
         <Chat chatId={chatId} />
-      </ChatMessagesProvider>
+      </MessagesProvider>
     </LayoutApp>
   )
 }
