@@ -4,7 +4,7 @@ import { ChatInput } from "@/app/components/chat-input/chat-input"
 import { Conversation } from "@/app/components/chat/conversation"
 import { useUser } from "@/app/providers/user-provider"
 import { toast } from "@/components/ui/toast"
-import { checkRateLimits, createGuestUser, updateChatModel } from "@/lib/api"
+import { checkRateLimits, createGuestUser } from "@/lib/api"
 import { useChatHistory } from "@/lib/chat-store/chat-history-provider"
 import { useChatMessages } from "@/lib/chat-store/chat-message-provider"
 import {
@@ -40,7 +40,7 @@ type ChatProps = {
 }
 
 export default function Chat({ chatId: propChatId }: ChatProps) {
-  const { createNewChat, getChatById } = useChatHistory()
+  const { createNewChat, getChatById, updateChatModel } = useChatHistory()
   const currentChat = propChatId ? getChatById(propChatId) : null
   const { messages: initialMessages, cacheAndAddMessage } = useChatMessages()
   const { user } = useUser()
@@ -168,13 +168,21 @@ export default function Chat({ chatId: propChatId }: ChatProps) {
 
   const handleModelChange = useCallback(
     async (model: string) => {
-      if (!chatId) return
+      if (!user?.id) {
+        return
+      }
+
+      if (!chatId && user?.id) {
+        setSelectedModel(model)
+        return
+      }
+
       const oldModel = selectedModel
 
       setSelectedModel(model)
 
       try {
-        await updateChatModel(chatId, model)
+        await updateChatModel(chatId!, model)
       } catch (err) {
         console.error("Failed to update chat model:", err)
         setSelectedModel(oldModel)

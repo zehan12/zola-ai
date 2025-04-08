@@ -3,7 +3,8 @@ import type { Chat, ChatHistory } from "@/lib/chat-store/types"
 import { createClient } from "@/lib/supabase/client"
 import { MODEL_DEFAULT, SYSTEM_PROMPT_DEFAULT } from "../config"
 import { fetchClient } from "../fetch"
-import { API_ROUTE_CREATE_CHAT } from "../routes"
+import { API_ROUTE_CREATE_CHAT, API_ROUTE_UPDATE_CHAT_MODEL } from "../routes"
+import { getCachedChats } from "./history"
 
 export async function getChat(chatId: string): Promise<Chat | null> {
   const all = await readFromIndexedDB<Chat>("chats")
@@ -52,12 +53,31 @@ export async function createChat(
 }
 
 export async function updateChatModel(chatId: string, model: string) {
-  const supabase = createClient()
-  await supabase.from("chats").update({ model }).eq("id", chatId)
+  try {
+    const res = await fetchClient(API_ROUTE_UPDATE_CHAT_MODEL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chatId, model }),
+    })
+    const responseData = await res.json()
 
-  const existing = await getChat(chatId)
-  if (existing) {
-    await writeToIndexedDB("chats", { ...existing, model })
+    if (!res.ok) {
+      throw new Error(
+        responseData.error ||
+          `Failed to update chat model: ${res.status} ${res.statusText}`
+      )
+    }
+
+    const all = await getCachedChats()
+    const updated = (all as ChatHistory[]).map((c) =>
+      c.id === chatId ? { ...c, model } : c
+    )
+    await writeToIndexedDB("chats", updated)
+
+    return responseData
+  } catch (error) {
+    console.error("Error updating chat model:", error)
+    throw error
   }
 }
 

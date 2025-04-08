@@ -3,7 +3,10 @@
 import { toast } from "@/components/ui/toast"
 import { createContext, useContext, useEffect, useState } from "react"
 import { MODEL_DEFAULT, SYSTEM_PROMPT_DEFAULT } from "../config"
-import { createNewChat as createNewChatFromDb } from "./chat"
+import {
+  createNewChat as createNewChatFromDb,
+  updateChatModel as updateChatModelFromDb,
+} from "./chat"
 import {
   deleteChat as deleteChatFromDb,
   fetchAndCacheChats,
@@ -32,6 +35,7 @@ interface ChatHistoryContextType {
   ) => Promise<ChatHistory | undefined>
   resetHistory: () => Promise<void>
   getChatById: (id: string) => ChatHistory | undefined
+  updateChatModel: (id: string, model: string) => Promise<void>
 }
 const ChatHistoryContext = createContext<ChatHistoryContextType | null>(null)
 
@@ -151,6 +155,10 @@ export function ChatHistoryProvider({
     return chat
   }
 
+  const updateChatModel = async (id: string, model: string) => {
+    await updateChatModelFromDb(id, model)
+  }
+
   return (
     <ChatHistoryContext.Provider
       value={{
@@ -162,6 +170,7 @@ export function ChatHistoryProvider({
         createNewChat,
         resetHistory,
         getChatById,
+        updateChatModel,
       }}
     >
       {children}
