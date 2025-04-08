@@ -6,6 +6,7 @@ import { useUser } from "@/app/providers/user-provider"
 import { toast } from "@/components/ui/toast"
 import { checkRateLimits, createGuestUser, updateChatModel } from "@/lib/api"
 import { useChatHistory } from "@/lib/chat-store/chat-history-provider"
+import { useChatMessages } from "@/lib/chat-store/chat-message-provider"
 import {
   MESSAGE_MAX_LENGTH,
   MODEL_DEFAULT,
@@ -35,30 +36,46 @@ const DialogAuth = dynamic(
 )
 
 type ChatProps = {
-  initialMessages?: Message[]
+  // initialMessages?: Message[]
   chatId?: string
-  preferredModel?: string
-  systemPrompt?: string
+  // preferredModel?: string
+  // systemPrompt?: string
 }
 
 export default function Chat({
-  initialMessages,
+  // initialMessages,
   chatId: propChatId,
-  preferredModel,
-  systemPrompt: propSystemPrompt,
+  // preferredModel,
+  // systemPrompt: propSystemPrompt,
 }: ChatProps) {
+  const { createNewChat, chats } = useChatHistory()
+  const {
+    messages: initialMessages,
+    refresh,
+    reset,
+    addMessage,
+    saveAllMessages,
+  } = useChatMessages()
   const { user } = useUser()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasDialogAuth, setHasDialogAuth] = useState(false)
   const [chatId, setChatId] = useState<string | null>(propChatId || null)
   const [files, setFiles] = useState<File[]>([])
+  // const [selectedModel, setSelectedModel] = useState(
+  //   preferredModel || user?.preferred_model || MODEL_DEFAULT
+  // )
+  // const [systemPrompt, setSystemPrompt] = useState(propSystemPrompt)
+  // @todo: get preferred model from chat history, add it to the chat history
   const [selectedModel, setSelectedModel] = useState(
-    preferredModel || user?.preferred_model || MODEL_DEFAULT
+    user?.preferred_model || MODEL_DEFAULT
   )
-  const [systemPrompt, setSystemPrompt] = useState(propSystemPrompt)
-  const { createNewChat } = useChatHistory()
-  const isAuthenticated = !!user?.id
+  const [systemPrompt, setSystemPrompt] = useState(
+    user?.preferred_model || MODEL_DEFAULT
+  )
 
+  console.log("initialMessages", initialMessages)
+
+  const isAuthenticated = !!user?.id
   const {
     messages,
     input,
@@ -75,9 +92,17 @@ export default function Chat({
     initialMessages,
   })
 
+  console.log("messages", messages)
+  console.log("status", status)
+  console.log("error", error)
+
   const isFirstMessage = useMemo(() => {
     return messages.length === 0
   }, [messages])
+
+  // const isMessagesInitializing = useMemo(() => {
+  //   return status === "loading" && messages.length === 0
+  // }, [status, messages])
 
   useEffect(() => {
     if (error) {
@@ -431,7 +456,7 @@ export default function Chat({
     >
       <DialogAuth open={hasDialogAuth} setOpen={setHasDialogAuth} />
       <AnimatePresence initial={false} mode="popLayout">
-        {isFirstMessage ? (
+        {!propChatId ? (
           <motion.div
             key="onboarding"
             className="absolute bottom-[60%] mx-auto max-w-[50rem] md:relative md:bottom-auto"

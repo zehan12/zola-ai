@@ -33,7 +33,7 @@ export function ChatMessagesProvider({
   chatId,
   children,
 }: {
-  chatId: string
+  chatId?: string
   children: React.ReactNode
 }) {
   const [messages, setMessages] = useState<Message[]>([])
@@ -57,6 +57,8 @@ export function ChatMessagesProvider({
   }, [chatId])
 
   const refresh = async () => {
+    if (!chatId) return
+
     try {
       const fresh = await fetchAndCacheMessages(chatId)
       setMessages(fresh)
@@ -66,11 +68,15 @@ export function ChatMessagesProvider({
   }
 
   const reset = async () => {
+    if (!chatId) return
+
     setMessages([])
     await clearMessagesForChat(chatId)
   }
 
   const addSingleMessage = async (message: Message) => {
+    if (!chatId) return
+
     try {
       await addMessage(chatId, message)
       setMessages((prev) => [...prev, message])
@@ -80,6 +86,8 @@ export function ChatMessagesProvider({
   }
 
   const saveAllMessages = async (newMessages: Message[]) => {
+    if (!chatId) return
+
     try {
       await saveMessages(chatId, newMessages)
       setMessages(newMessages)
