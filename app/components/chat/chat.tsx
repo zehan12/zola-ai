@@ -20,7 +20,7 @@ import {
 } from "@/lib/file-handling"
 import { API_ROUTE_CHAT } from "@/lib/routes"
 import { cn } from "@/lib/utils"
-import { Message, useChat } from "@ai-sdk/react"
+import { useChat } from "@ai-sdk/react"
 import { AnimatePresence, motion } from "motion/react"
 import dynamic from "next/dynamic"
 import { useCallback, useEffect, useMemo, useState } from "react"
@@ -48,13 +48,15 @@ export default function Chat({
   // preferredModel,
   // systemPrompt: propSystemPrompt,
 }: ChatProps) {
+  // @todo: use prompt from chat
   const { createNewChat, chats } = useChatHistory()
   const {
     messages: initialMessages,
-    refresh,
-    reset,
+    cacheAndAddMessage,
+    // refresh,
+    // reset,
     addMessage,
-    saveAllMessages,
+    // saveAllMessages,
   } = useChatMessages()
   const { user } = useUser()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -73,8 +75,6 @@ export default function Chat({
     user?.preferred_model || MODEL_DEFAULT
   )
 
-  console.log("initialMessages", initialMessages)
-
   const isAuthenticated = !!user?.id
   const {
     messages,
@@ -90,19 +90,18 @@ export default function Chat({
   } = useChat({
     api: API_ROUTE_CHAT,
     initialMessages,
-  })
+    // save assistant messages data layer
+    onFinish: async (message) => {
+      console.log("onFinish message", message)
 
-  console.log("messages", messages)
-  console.log("status", status)
-  console.log("error", error)
+      if (!chatId) return
+      await cacheAndAddMessage(message)
+    },
+  })
 
   const isFirstMessage = useMemo(() => {
     return messages.length === 0
   }, [messages])
-
-  // const isMessagesInitializing = useMemo(() => {
-  //   return status === "loading" && messages.length === 0
-  // }, [status, messages])
 
   useEffect(() => {
     if (error) {
@@ -330,6 +329,7 @@ export default function Chat({
       handleSubmit(undefined, options)
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
       cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
+      cacheAndAddMessage(optimisticMessage)
     } catch (error) {
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
       cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
@@ -441,7 +441,7 @@ export default function Chat({
         userId: uid,
         model: selectedModel,
         isAuthenticated,
-        systemPrompt: systemPrompt || "You are a helpful assistant.",
+        systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
       },
     }
 
@@ -456,7 +456,7 @@ export default function Chat({
     >
       <DialogAuth open={hasDialogAuth} setOpen={setHasDialogAuth} />
       <AnimatePresence initial={false} mode="popLayout">
-        {!propChatId ? (
+        {!propChatId && messages.length === 0 ? (
           <motion.div
             key="onboarding"
             className="absolute bottom-[60%] mx-auto max-w-[50rem] md:relative md:bottom-auto"

@@ -59,7 +59,7 @@ export async function POST(req: Request) {
       model: MODELS.find((m) => m.id === model)?.api_sdk!,
       system: systemPrompt || "You are a helpful assistant.",
       messages,
-      // When the response finishes, insert the assistant messages.
+      // When the response finishes, insert the assistant messages to supabase
       async onFinish({ response }) {
         try {
           for (const msg of response.messages) {

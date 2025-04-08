@@ -10,6 +10,7 @@ import {
   getCachedMessages,
   setMessages as saveMessages,
 } from "./messages"
+import { writeToIndexedDB } from "./persist"
 
 interface ChatMessagesContextType {
   messages: Message[]
@@ -18,6 +19,7 @@ interface ChatMessagesContextType {
   reset: () => Promise<void>
   addMessage: (message: Message) => Promise<void>
   saveAllMessages: (messages: Message[]) => Promise<void>
+  cacheAndAddMessage: (message: Message) => Promise<void>
 }
 
 const ChatMessagesContext = createContext<ChatMessagesContextType | null>(null)
@@ -85,6 +87,18 @@ export function ChatMessagesProvider({
     }
   }
 
+  const cacheAndAddMessage = async (message: Message) => {
+    if (!chatId) return
+
+    try {
+      const updated = [...messages, message]
+      await writeToIndexedDB("messages", { id: chatId, messages: updated })
+      setMessages(updated)
+    } catch (e) {
+      toast({ title: "Failed to save message", status: "error" })
+    }
+  }
+
   const saveAllMessages = async (newMessages: Message[]) => {
     if (!chatId) return
 
@@ -105,6 +119,7 @@ export function ChatMessagesProvider({
         reset,
         addMessage: addSingleMessage,
         saveAllMessages,
+        cacheAndAddMessage,
       }}
     >
       {children}
