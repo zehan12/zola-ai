@@ -1,0 +1,105 @@
+"use client"
+
+import { toast } from "@/components/ui/toast"
+import type { Message } from "ai"
+import { createContext, useContext, useEffect, useState } from "react"
+import {
+  addMessage,
+  clearMessagesForChat,
+  fetchAndCacheMessages,
+  getCachedMessages,
+  setMessages as saveMessages,
+} from "./messages"
+
+interface ChatMessagesContextType {
+  messages: Message[]
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>
+  refresh: () => Promise<void>
+  reset: () => Promise<void>
+  addMessage: (message: Message) => Promise<void>
+  saveAllMessages: (messages: Message[]) => Promise<void>
+}
+
+const ChatMessagesContext = createContext<ChatMessagesContextType | null>(null)
+
+export function useChatMessages() {
+  const context = useContext(ChatMessagesContext)
+  if (!context)
+    throw new Error("useChatMessages must be used within ChatMessagesProvider")
+  return context
+}
+
+export function ChatMessagesProvider({
+  chatId,
+  children,
+}: {
+  chatId: string
+  children: React.ReactNode
+}) {
+  const [messages, setMessages] = useState<Message[]>([])
+
+  useEffect(() => {
+    if (!chatId) return
+
+    const load = async () => {
+      const cached = await getCachedMessages(chatId)
+      setMessages(cached)
+
+      try {
+        const fresh = await fetchAndCacheMessages(chatId)
+        setMessages(fresh)
+      } catch (error) {
+        console.error("Failed to fetch messages:", error)
+      }
+    }
+
+    load()
+  }, [chatId])
+
+  const refresh = async () => {
+    try {
+      const fresh = await fetchAndCacheMessages(chatId)
+      setMessages(fresh)
+    } catch (e) {
+      toast({ title: "Failed to refresh messages", status: "error" })
+    }
+  }
+
+  const reset = async () => {
+    setMessages([])
+    await clearMessagesForChat(chatId)
+  }
+
+  const addSingleMessage = async (message: Message) => {
+    try {
+      await addMessage(chatId, message)
+      setMessages((prev) => [...prev, message])
+    } catch (e) {
+      toast({ title: "Failed to add message", status: "error" })
+    }
+  }
+
+  const saveAllMessages = async (newMessages: Message[]) => {
+    try {
+      await saveMessages(chatId, newMessages)
+      setMessages(newMessages)
+    } catch (e) {
+      toast({ title: "Failed to save messages", status: "error" })
+    }
+  }
+
+  return (
+    <ChatMessagesContext.Provider
+      value={{
+        messages,
+        setMessages,
+        refresh,
+        reset,
+        addMessage: addSingleMessage,
+        saveAllMessages,
+      }}
+    >
+      {children}
+    </ChatMessagesContext.Provider>
+  )
+}
