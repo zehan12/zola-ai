@@ -2,19 +2,17 @@
 
 import { toast } from "@/components/ui/toast"
 import { createContext, useContext, useEffect, useState } from "react"
-import { MODEL_DEFAULT, SYSTEM_PROMPT_DEFAULT } from "../config"
+import { MODEL_DEFAULT, SYSTEM_PROMPT_DEFAULT } from "../../config"
+import { clearAllIndexedDBStores } from "../persist"
+import type { ChatHistory } from "../types"
 import {
   createNewChat as createNewChatFromDb,
-  updateChatModel as updateChatModelFromDb,
-} from "./chat"
-import {
   deleteChat as deleteChatFromDb,
   fetchAndCacheChats,
   getCachedChats,
+  updateChatModel as updateChatModelFromDb,
   updateChatTitle,
-} from "./history"
-import { clearAllIndexedDBStores } from "./persist"
-import type { ChatHistory } from "./types"
+} from "./api"
 
 interface ChatHistoryContextType {
   chats: ChatHistory[]

@@ -1,4 +1,4 @@
-import { ChatMessagesProvider } from "@/lib/chat-store/chat-message-provider"
+import { ChatMessagesProvider } from "@/lib/chat-store/messages/provider"
 import Chat from "./components/chat/chat"
 import LayoutApp from "./components/layout/layout-app"
 

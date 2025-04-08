@@ -5,8 +5,8 @@ import { Conversation } from "@/app/components/chat/conversation"
 import { useUser } from "@/app/providers/user-provider"
 import { toast } from "@/components/ui/toast"
 import { checkRateLimits, createGuestUser } from "@/lib/api"
-import { useChatHistory } from "@/lib/chat-store/chat-history-provider"
-import { useChatMessages } from "@/lib/chat-store/chat-message-provider"
+import { useChatHistory } from "@/lib/chat-store/chats/provider"
+import { useChatMessages } from "@/lib/chat-store/messages/provider"
 import {
   MESSAGE_MAX_LENGTH,
   MODEL_DEFAULT,

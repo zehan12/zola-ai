@@ -1,4 +1,4 @@
-import { ChatMessagesProvider } from "@/lib/chat-store/chat-message-provider"
+import { ChatMessagesProvider } from "@/lib/chat-store/messages/provider"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Chat from "../../components/chat/chat"

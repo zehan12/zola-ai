@@ -3,14 +3,14 @@
 import { toast } from "@/components/ui/toast"
 import type { Message } from "ai"
 import { createContext, useContext, useEffect, useState } from "react"
+import { writeToIndexedDB } from "../persist"
 import {
   addMessage,
   clearMessagesForChat,
   fetchAndCacheMessages,
   getCachedMessages,
   setMessages as saveMessages,
-} from "./messages"
-import { writeToIndexedDB } from "./persist"
+} from "./api"
 
 interface ChatMessagesContextType {
   messages: Message[]

@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/client"
 import { Message } from "ai"
-import { readFromIndexedDB, writeToIndexedDB } from "./persist"
+import { readFromIndexedDB, writeToIndexedDB } from "../persist"
 
 type ChatMessageEntry = {
   id: string

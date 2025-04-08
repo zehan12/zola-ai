@@ -14,7 +14,7 @@ import {
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { toast } from "@/components/ui/toast"
-import { useChatHistory } from "@/lib/chat-store/chat-history-provider"
+import { useChatHistory } from "@/lib/chat-store/chats/provider"
 import { AUTH_DAILY_MESSAGE_LIMIT, MODEL_DEFAULT } from "@/lib/config"
 import { cn } from "@/lib/utils"
 import { SignOut, User, X } from "@phosphor-icons/react"
