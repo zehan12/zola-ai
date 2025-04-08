@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils"
 import { useChat } from "@ai-sdk/react"
 import { AnimatePresence, motion } from "motion/react"
 import dynamic from "next/dynamic"
+import { redirect } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 const FeedbackWidget = dynamic(
@@ -432,6 +433,11 @@ export default function Chat({ chatId: propChatId }: ChatProps) {
     }
 
     reload(options)
+  }
+
+  // not user chatId and no messages
+  if (propChatId && !currentChat && messages.length === 0) {
+    return redirect("/")
   }
 
   return (
