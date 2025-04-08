@@ -14,35 +14,46 @@ let dbReady = false
 // Initialize the database with proper versioning
 function initDatabase() {
   return new Promise<void>((resolve, reject) => {
-    // Open with a new version to force an upgrade
-    const request = indexedDB.deleteDatabase("zola-db")
+    // Check current version first
+    const checkRequest = indexedDB.open("zola-db")
+    let newVersion = 1
 
-    request.onsuccess = () => {
-      console.log("Database deleted successfully")
+    checkRequest.onsuccess = () => {
+      const db = checkRequest.result
+      newVersion = db.version + 1
+      db.close()
 
-      // Now create a fresh database
-      const openRequest = indexedDB.open("zola-db", 1)
+      // Open with a proper version upgrade
+      const request = indexedDB.open("zola-db", newVersion)
 
-      openRequest.onupgradeneeded = (event) => {
-        const db = openRequest.result
-        // Create all stores
-        db.createObjectStore("chats")
-        db.createObjectStore("messages")
-        db.createObjectStore("sync")
+      request.onupgradeneeded = (event) => {
+        const db = request.result
+
+        // Create missing stores only if they don't exist
+        if (!db.objectStoreNames.contains("chats")) {
+          db.createObjectStore("chats")
+        }
+        if (!db.objectStoreNames.contains("messages")) {
+          db.createObjectStore("messages")
+        }
+        if (!db.objectStoreNames.contains("sync")) {
+          db.createObjectStore("sync")
+        }
       }
 
-      openRequest.onsuccess = () => {
+      request.onsuccess = () => {
         dbReady = true
+        request.result.close()
         resolve()
       }
 
-      openRequest.onerror = () => {
-        reject(openRequest.error)
+      request.onerror = () => {
+        reject(request.error)
       }
     }
 
-    request.onerror = () => {
-      reject(request.error)
+    checkRequest.onerror = () => {
+      reject(checkRequest.error)
     }
   })
 }
