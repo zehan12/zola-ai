@@ -27,24 +27,14 @@ function initDatabase() {
   if (!isClient) return Promise.resolve()
 
   return new Promise<void>((resolve, reject) => {
-    console.log("⏳ Opening database with version", DB_VERSION)
     const request = indexedDB.open(DB_NAME, DB_VERSION)
 
-    request.onupgradeneeded = (event) => {
-      console.log("🔄 Database upgrade needed, creating object stores", event)
+    request.onupgradeneeded = () => {
       const db = request.result
-      if (!db.objectStoreNames.contains("chats")) {
-        console.log("📦 Creating 'chats' object store")
-        db.createObjectStore("chats")
-      }
-      if (!db.objectStoreNames.contains("messages")) {
-        console.log("📦 Creating 'messages' object store")
+      if (!db.objectStoreNames.contains("chats")) db.createObjectStore("chats")
+      if (!db.objectStoreNames.contains("messages"))
         db.createObjectStore("messages")
-      }
-      if (!db.objectStoreNames.contains("sync")) {
-        console.log("📦 Creating 'sync' object store")
-        db.createObjectStore("sync")
-      }
+      if (!db.objectStoreNames.contains("sync")) db.createObjectStore("sync")
     }
 
     request.onsuccess = () => {
@@ -60,70 +50,47 @@ function initDatabase() {
 }
 
 if (isClient) {
-  console.log("🔍 Starting database check")
   const checkRequest = indexedDB.open(DB_NAME)
 
   checkRequest.onsuccess = () => {
-    console.log("✅ Initial DB check successful")
     const db = checkRequest.result
-    console.log(
-      `📊 DB Version check: current=${db.version}, required=${DB_VERSION}`
-    )
     if (db.version > DB_VERSION) {
-      console.warn(
-        `⚠️ Database version mismatch: ${db.version} > ${DB_VERSION}, deleting database`
-      )
       db.close()
       const deleteRequest = indexedDB.deleteDatabase(DB_NAME)
       deleteRequest.onsuccess = () => {
-        console.log("🗑️ Database deleted successfully")
         initDatabaseAndStores()
       }
       deleteRequest.onerror = (event) => {
-        console.error("❌ Database deletion failed:", event)
+        console.error("Database deletion failed:", event)
         initDatabaseAndStores()
       }
     } else {
-      console.log("✅ Database version is compatible")
       db.close()
       initDatabaseAndStores()
     }
   }
 
-  checkRequest.onerror = (event) => {
-    console.warn("⚠️ Initial DB check failed:", event)
+  checkRequest.onerror = () => {
     initDatabaseAndStores()
   }
 }
 
 function initDatabaseAndStores(): void {
-  console.log("🚀 Initializing database and stores")
   dbInitPromise = initDatabase()
-  console.log("📝 Database initialization promise created")
 
   dbInitPromise
     .then(() => {
-      console.log("✅ Database initialized successfully")
       const openRequest = indexedDB.open(DB_NAME)
-      console.log("🔓 Opening database to create stores")
 
       openRequest.onsuccess = () => {
-        console.log("✅ Database opened successfully for store creation")
         const objectStores = Array.from(openRequest.result.objectStoreNames)
-        console.log("📋 Available object stores:", objectStores)
 
         if (objectStores.length === 0) {
-          console.warn(
-            "⚠️ No object stores found in database, forcing DB recreation"
-          )
           openRequest.result.close()
 
           // Delete and recreate the database to force onupgradeneeded
           const deleteRequest = indexedDB.deleteDatabase(DB_NAME)
           deleteRequest.onsuccess = () => {
-            console.log(
-              "🗑️ Empty database deleted, recreating with proper stores"
-            )
             dbInitPromise = initDatabase() // Reinitialize with proper stores
             dbInitPromise.then(() => {
               // Try opening again to create stores
@@ -132,39 +99,22 @@ function initDatabaseAndStores(): void {
                 const newObjectStores = Array.from(
                   reopenRequest.result.objectStoreNames
                 )
-                console.log("📋 New available object stores:", newObjectStores)
 
-                let storeCount = 0
-                if (newObjectStores.includes("chats")) {
-                  console.log("🔧 Creating store: chats")
+                if (newObjectStores.includes("chats"))
                   stores.chats = createStore(DB_NAME, "chats")
-                  storeCount++
-                }
-                if (newObjectStores.includes("messages")) {
-                  console.log("🔧 Creating store: messages")
+                if (newObjectStores.includes("messages"))
                   stores.messages = createStore(DB_NAME, "messages")
-                  storeCount++
-                }
-                if (newObjectStores.includes("sync")) {
-                  console.log("🔧 Creating store: sync")
+                if (newObjectStores.includes("sync"))
                   stores.sync = createStore(DB_NAME, "sync")
-                  storeCount++
-                }
 
-                console.log(
-                  `📦 Created ${storeCount} stores`,
-                  Object.keys(stores)
-                )
-                console.log("🏁 Setting storesReady flag to true")
                 storesReady = true
-                console.log("🔔 Resolving storesReadyPromise")
                 storesReadyResolve()
                 reopenRequest.result.close()
               }
 
               reopenRequest.onerror = (event) => {
                 console.error(
-                  "❌ Failed to reopen database after recreation:",
+                  "Failed to reopen database after recreation:",
                   event
                 )
                 storesReady = true
@@ -177,75 +127,38 @@ function initDatabaseAndStores(): void {
         }
 
         // Continue with existing logic for when stores are found
-        let storeCount = 0
-        if (objectStores.includes("chats")) {
-          console.log("🔧 Creating store: chats")
+        if (objectStores.includes("chats"))
           stores.chats = createStore(DB_NAME, "chats")
-          storeCount++
-        }
-        if (objectStores.includes("messages")) {
-          console.log("🔧 Creating store: messages")
+        if (objectStores.includes("messages"))
           stores.messages = createStore(DB_NAME, "messages")
-          storeCount++
-        }
-        if (objectStores.includes("sync")) {
-          console.log("🔧 Creating store: sync")
+        if (objectStores.includes("sync"))
           stores.sync = createStore(DB_NAME, "sync")
-          storeCount++
-        }
 
-        console.log(`📦 Created ${storeCount} stores`, Object.keys(stores))
-        console.log("🏁 Setting storesReady flag to true")
         storesReady = true
-        console.log("🔔 Resolving storesReadyPromise")
         storesReadyResolve()
-        console.log("🔒 Closing database connection")
         openRequest.result.close()
       }
 
       openRequest.onerror = (event) => {
-        console.error(
-          "❌ Failed to open database for store creation:",
-          event,
-          openRequest.error
-        )
-        console.warn("⚠️ Resolving stores promise despite error")
+        console.error("Failed to open database for store creation:", event)
         storesReady = true
         storesReadyResolve()
       }
     })
     .catch((error) => {
-      console.error("❌ Database initialization failed:", error)
-      console.warn("⚠️ Resolving stores promise despite initialization failure")
+      console.error("Database initialization failed:", error)
       storesReady = true
       storesReadyResolve()
     })
 }
 
 export async function ensureDbReady() {
-  console.log("🔍 Ensuring database is ready")
   if (!isClient) {
-    console.warn("⚠️ ensureDbReady: not client")
+    console.warn("ensureDbReady: not client")
     return
   }
-
-  if (dbInitPromise) {
-    console.log("⏳ Waiting for database initialization")
-    await dbInitPromise
-    console.log("✅ Database initialization complete")
-  } else {
-    console.warn("⚠️ No database initialization promise found")
-  }
-
-  if (!storesReady) {
-    console.log("⏳ Waiting for stores to be ready")
-    await storesReadyPromise
-    console.log("✅ Stores ready")
-  } else {
-    console.log("✅ Stores already ready")
-  }
-
-  console.log("🏁 Database and stores are ready")
+  if (dbInitPromise) await dbInitPromise
+  if (!storesReady) await storesReadyPromise
 }
 
 export async function readFromIndexedDB<T>(
@@ -253,7 +166,6 @@ export async function readFromIndexedDB<T>(
   key?: string
 ): Promise<T | T[]> {
   await ensureDbReady()
-  console.log("✅ stores ready", Object.keys(stores))
 
   if (!isClient) {
     console.warn("readFromIndexedDB: not client")
@@ -268,32 +180,19 @@ export async function readFromIndexedDB<T>(
   try {
     const store = stores[table]
     if (key) {
-      console.log(`🔍 Reading from ${table} cache with key "${key}"`)
       const result = await get<T>(key, store)
-      console.log(
-        `📦 Cache result for "${key}":`,
-        result ? JSON.stringify(result).substring(0, 100) + "..." : "not found"
-      )
-
       return result as T
     }
 
-    console.log(`🔍 Reading all keys from ${table} cache`)
     const allKeys = await keys(store)
-    console.log(`📦 Found ${allKeys.length} keys in ${table} cache:`, allKeys)
-
     if (allKeys.length > 0) {
       const results = await getMany<T>(allKeys as string[], store)
-      console.log(
-        `📦 Retrieved ${results.filter(Boolean).length} items from ${table} cache`
-      )
       return results.filter(Boolean)
     }
 
-    console.log(`📦 No items found in ${table} cache`)
     return []
   } catch (error) {
-    console.warn(`📦 readFromIndexedDB failed (${table}):`, error)
+    console.warn(`readFromIndexedDB failed (${table}):`, error)
     return key ? (null as any) : []
   }
 }
@@ -320,11 +219,9 @@ export async function writeToIndexedDB<T extends { id: string | number }>(
       ? data.map((item) => [item.id, item])
       : [[data.id, data]]
 
-    console.log(`💾 Writing to ${table} cache:`, entries.length, "items")
     await setMany(entries, store)
-    console.log(`✅ Successfully wrote to ${table} cache`)
   } catch (error) {
-    console.warn(`📦 writeToIndexedDB failed (${table}):`, error)
+    console.warn(`writeToIndexedDB failed (${table}):`, error)
   }
 }
 
