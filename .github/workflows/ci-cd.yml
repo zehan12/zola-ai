@@ -13,7 +13,6 @@ env:
   NEXT_PUBLIC_VERCEL_URL: ${{ vars.NEXT_PUBLIC_VERCEL_URL }}
 
 jobs:
-  # VALIDATION JOB
   validate:
     name: Lint and Test
     runs-on: ubuntu-latest
@@ -32,14 +31,13 @@ jobs:
       
       - name: Run ESLint
         run: npm run lint
-        
+      
       - name: Run TypeScript checks
-        run: npm run type-check || echo "Type check failed but continuing"
-        
+        run: npm run type-check
+      
       - name: Run Tests
-        run: npm test || echo "No tests specified"
+        run: npm test
 
-  # BUILD JOB
   build:
     name: Build Application
     needs: validate
@@ -93,7 +91,6 @@ jobs:
             postcss.config.mjs
             tailwind.config.js
 
-  # DOCKER JOB
   docker:
     name: Build and Push Docker Image
     needs: [validate, build]
@@ -145,7 +142,6 @@ jobs:
           build-args: |
             NEXT_PUBLIC_VERCEL_URL=${{ env.NEXT_PUBLIC_VERCEL_URL }}
 
-  # DEPLOYMENT JOB
   # deploy:
   #   name: Deploy Application
   #   needs: docker
@@ -161,7 +157,6 @@ jobs:
   #         # Example for a docker-compose deployment:
   #         # ssh user@server "cd /path/to/app && docker-compose pull && docker-compose up -d"
   #       env:
-  #         # Add environment-specific secrets
   #         DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
   #         NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
   #         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
