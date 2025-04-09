@@ -90,7 +90,7 @@ export function DrawerHistory({
         <TooltipContent>History</TooltipContent>
       </Tooltip>
       <DrawerContent>
-        <div className="flex h-full flex-col">
+        <div className="flex h-dvh max-h-[80vh] flex-col">
           <div className="border-b p-4 pb-3">
             <div className="relative">
               <Input
@@ -103,8 +103,8 @@ export function DrawerHistory({
             </div>
           </div>
 
-          <ScrollArea className="max-h-[480px] min-h-[480px] flex-1">
-            <div className="flex flex-col space-y-2 px-4 py-4">
+          <ScrollArea className="flex-1 overflow-auto">
+            <div className="flex flex-col space-y-2 px-4 pt-4 pb-8">
               {filteredChat.map((chat, index) => (
                 <div key={index}>
                   <div className="space-y-1.5">
