@@ -85,6 +85,14 @@ export function CommandHistory({
     (chat.title || "").toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  // will add pagination later
+  useEffect(() => {
+    if (!isOpen) return
+    chatHistory.forEach((chat) => {
+      router.prefetch(`/c/${chat.id}`)
+    })
+  }, [isOpen, chatHistory])
+
   return (
     <>
       <Tooltip>
@@ -206,7 +214,7 @@ export function CommandHistory({
                       key={chat.id}
                       onSelect={() => {
                         if (!editingId && !deletingId) {
-                          router.prefetch(`/c/${chat.id}`)
+                          router.push(`/c/${chat.id}`)
                         }
                       }}
                       className={cn(
