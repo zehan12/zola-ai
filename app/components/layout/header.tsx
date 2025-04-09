@@ -1,6 +1,6 @@
 "use client"
 
-import { History } from "@/app/components/history/history"
+import { HistoryTrigger } from "@/app/components/history/history-trigger"
 import { AppInfoTrigger } from "@/app/components/layout/app-info/app-info-trigger"
 import { ButtonNewChat } from "@/app/components/layout/button-new-chat"
 import { UserMenu } from "@/app/components/layout/user-menu"
@@ -45,7 +45,7 @@ export function Header() {
         ) : (
           <div className="flex items-center gap-4">
             <ButtonNewChat />
-            <History />
+            <HistoryTrigger />
             <UserMenu />
           </div>
         )}

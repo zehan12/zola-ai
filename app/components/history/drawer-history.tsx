@@ -10,7 +10,6 @@ import {
 import { Chats } from "@/lib/chat-store/types"
 import {
   Check,
-  ListMagnifyingGlass,
   MagnifyingGlass,
   PencilSimple,
   TrashSimple,
@@ -23,21 +22,26 @@ type DrawerHistoryProps = {
   chatHistory: Chats[]
   onSaveEdit: (id: string, newTitle: string) => Promise<void>
   onConfirmDelete: (id: string) => Promise<void>
+  trigger: React.ReactNode
+  isOpen: boolean
+  setIsOpen: (open: boolean) => void
 }
 
 export function DrawerHistory({
   chatHistory,
   onSaveEdit,
   onConfirmDelete,
+  trigger,
+  isOpen,
+  setIsOpen,
 }: DrawerHistoryProps) {
-  const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState("")
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const handleOpenChange = (open: boolean) => {
-    setOpen(open)
+    setIsOpen(open)
     if (!open) {
       setSearchQuery("")
       setEditingId(null)
@@ -78,17 +82,10 @@ export function DrawerHistory({
   )
 
   return (
-    <Drawer open={open} onOpenChange={handleOpenChange}>
+    <Drawer open={isOpen} onOpenChange={handleOpenChange}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <DrawerTrigger asChild>
-            <button
-              className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full p-1.5 transition-colors"
-              type="button"
-            >
-              <ListMagnifyingGlass size={24} />
-            </button>
-          </DrawerTrigger>
+          <DrawerTrigger asChild>{trigger}</DrawerTrigger>
         </TooltipTrigger>
         <TooltipContent>History</TooltipContent>
       </Tooltip>

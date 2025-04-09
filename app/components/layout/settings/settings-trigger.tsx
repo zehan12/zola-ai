@@ -1,7 +1,6 @@
 "use client"
 
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
-import { useUser } from "@/app/providers/user-provider"
 import {
   Dialog,
   DialogContent,
