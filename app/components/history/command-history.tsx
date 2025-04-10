@@ -95,6 +95,9 @@ export function CommandHistory({
     })
   }, [isOpen, chatHistory])
 
+  console.log(editingId, deletingId)
+  console.log(filteredChat)
+
   return (
     <>
       <Tooltip>
@@ -220,11 +223,12 @@ export function CommandHistory({
                         }
                       }}
                       className={cn(
-                        "group hover:bg-accent! flex w-full items-center justify-between rounded-md data-[selected=true]:bg-transparent",
+                        "group group data-[selected=true]:bg-accent flex w-full items-center justify-between rounded-md",
                         Boolean(editingId || deletingId) &&
-                          "hover:bg-transparent! data-[selected=true]:bg-transparent"
+                          "data-[selected=true]:bg-transparent"
                       )}
-                      value={chat.title || "Untitled Chat"}
+                      value={chat.id}
+                      data-value-id={chat.id}
                     >
                       <div className="min-w-0 flex-1">
                         <span className="line-clamp-1 text-base font-normal">
@@ -232,14 +236,15 @@ export function CommandHistory({
                         </span>
                       </div>
 
-                      {/* Date and actions container with fixed width */}
+                      {/* Date and actions container */}
                       <div className="relative flex min-w-[120px] flex-shrink-0 justify-end">
-                        {/* Date that shows by default but hides on hover */}
+                        {/* Date that shows by default but hides on selection */}
                         <span
                           className={cn(
-                            "text-muted-foreground text-base font-normal transition-opacity duration-0 group-hover:opacity-0",
+                            "text-muted-foreground text-base font-normal opacity-100 transition-opacity duration-0",
+                            "group-data-[selected=true]:opacity-0",
                             Boolean(editingId || deletingId) &&
-                              "group-hover:opacity-100"
+                              "group-data-[selected=true]:opacity-100"
                           )}
                         >
                           {chat?.created_at
@@ -247,12 +252,13 @@ export function CommandHistory({
                             : "No date"}
                         </span>
 
-                        {/* Action buttons that appear on hover, positioned over the date */}
+                        {/* Action buttons that appear on selection, positioned over the date */}
                         <div
                           className={cn(
-                            "absolute inset-0 flex items-center justify-end gap-1 opacity-0 transition-opacity duration-0 group-hover:opacity-100",
+                            "absolute inset-0 flex items-center justify-end gap-1 opacity-0 transition-opacity duration-0",
+                            "group-data-[selected=true]:opacity-100",
                             Boolean(editingId || deletingId) &&
-                              "group-hover:opacity-0"
+                              "group-data-[selected=true]:opacity-0"
                           )}
                         >
                           <Button
