@@ -2,6 +2,7 @@
 
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import { useChats } from "@/lib/chat-store/chats/provider"
+import { useMessages } from "@/lib/chat-store/messages/provider"
 import { ListMagnifyingGlass } from "@phosphor-icons/react"
 import { useParams, usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -14,6 +15,7 @@ export function HistoryTrigger() {
   const pathname = usePathname()
   const router = useRouter()
   const { chats, updateTitle, deleteChat } = useChats()
+  const { deleteMessages } = useMessages()
   const [isOpen, setIsOpen] = useState(false)
   const [currentChatId, setCurrentChatId] = useState<string | undefined>(
     params.chatId
@@ -34,6 +36,7 @@ export function HistoryTrigger() {
 
   const handleConfirmDelete = async (id: string) => {
     setIsOpen(false)
+    await deleteMessages()
     await deleteChat(id, currentChatId, () => router.push("/"))
   }
 

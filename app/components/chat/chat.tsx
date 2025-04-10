@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils"
 import { useChat } from "@ai-sdk/react"
 import { AnimatePresence, motion } from "motion/react"
 import dynamic from "next/dynamic"
-import { redirect } from "next/navigation"
+import { redirect, useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 const FeedbackWidget = dynamic(
