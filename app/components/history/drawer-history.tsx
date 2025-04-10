@@ -18,7 +18,7 @@ import {
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useCallback, useMemo, useState } from "react"
-import { groupChatsByDate } from "./utils"
+import { formatDate, groupChatsByDate } from "./utils"
 
 type DrawerHistoryProps = {
   chatHistory: Chats[]
@@ -216,9 +216,7 @@ export function DrawerHistory({
                   {chat.title || "Untitled Chat"}
                 </span>
                 <span className="mr-2 text-xs font-normal text-gray-500">
-                  {chat.created_at
-                    ? new Date(chat.created_at).toLocaleDateString()
-                    : "Unknown Date"}
+                  {formatDate(chat?.created_at)}
                 </span>
               </Link>
               <div className="flex items-center">
@@ -290,7 +288,7 @@ export function DrawerHistory({
           </div>
 
           <ScrollArea className="flex-1 overflow-auto">
-            <div className="flex flex-col space-y-4 px-4 pt-4 pb-8">
+            <div className="flex flex-col space-y-6 px-4 pt-4 pb-8">
               {filteredChat.length === 0 ? (
                 <div className="text-muted-foreground py-4 text-center text-sm">
                   No chat history found.

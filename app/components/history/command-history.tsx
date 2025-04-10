@@ -19,9 +19,9 @@ import {
 import type { Chats } from "@/lib/chat-store/types"
 import { cn } from "@/lib/utils"
 import { Check, PencilSimple, TrashSimple, X } from "@phosphor-icons/react"
-import { useParams, useRouter, useSearchParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { groupChatsByDate } from "./utils"
+import { formatDate, groupChatsByDate } from "./utils"
 
 type CommandHistoryProps = {
   chatHistory: Chats[]
@@ -209,15 +209,13 @@ function CommandItemRow({
         {/* Date that shows by default but hides on selection */}
         <span
           className={cn(
-            "text-muted-foreground text-base font-normal opacity-100 transition-opacity duration-0",
+            "text-muted-foreground text-sm font-normal opacity-100 transition-opacity duration-0",
             "group-data-[selected=true]:opacity-0",
             Boolean(editingId || deletingId) &&
               "group-data-[selected=true]:opacity-100"
           )}
         >
-          {chat?.created_at
-            ? new Date(chat.created_at).toLocaleDateString()
-            : "No date"}
+          {formatDate(chat?.created_at)}
         </span>
 
         {/* Action buttons that appear on selection, positioned over the date */}
@@ -335,7 +333,7 @@ export function CommandHistory({
 
   const renderChatItem = useCallback(
     (chat: Chats) => (
-      <div key={chat.id} className="px-0 py-0.5">
+      <div key={chat.id} className="px-0 py-0">
         {editingId === chat.id ? (
           <CommandItemEdit
             chat={chat}
@@ -406,7 +404,7 @@ export function CommandHistory({
             value={searchQuery}
             onValueChange={(value) => setSearchQuery(value)}
           />
-          <CommandList className="max-h-[480px] min-h-[480px] flex-1">
+          <CommandList className="max-h-[480px] min-h-[480px] flex-1 [&>[cmdk-list-sizer]]:space-y-6 [&>[cmdk-list-sizer]]:py-2">
             {filteredChat.length === 0 && (
               <CommandEmpty>No chat history found.</CommandEmpty>
             )}
@@ -422,7 +420,7 @@ export function CommandHistory({
                 <CommandGroup
                   key={group.name}
                   heading={group.name}
-                  className="space-y-0 px-1.5 py-2"
+                  className="space-y-0 px-1.5"
                 >
                   {group.chats.map((chat) => renderChatItem(chat))}
                 </CommandGroup>
