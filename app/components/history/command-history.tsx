@@ -95,9 +95,6 @@ export function CommandHistory({
     })
   }, [isOpen, chatHistory])
 
-  console.log(editingId, deletingId)
-  console.log(filteredChat)
-
   return (
     <>
       <Tooltip>
@@ -180,7 +177,7 @@ export function CommandHistory({
                           </span>
                           <input
                             type="text"
-                            className="sr-only"
+                            className="sr-only hidden"
                             autoFocus
                             onKeyDown={(e) => {
                               if (e.key === "Escape") {
