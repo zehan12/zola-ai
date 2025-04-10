@@ -499,7 +499,7 @@ export default function Chat({ chatId: propChatId }: ChatProps) {
           files={files}
           onFileUpload={handleFileUpload}
           onFileRemove={handleFileRemove}
-          hasSuggestions={isFirstMessage}
+          hasSuggestions={!propChatId && messages.length === 0}
           onSelectModel={handleModelChange}
           onSelectSystemPrompt={handleSelectSystemPrompt}
           selectedModel={selectedModel}

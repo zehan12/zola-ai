@@ -19,8 +19,9 @@ import {
 import type { Chats } from "@/lib/chat-store/types"
 import { cn } from "@/lib/utils"
 import { Check, PencilSimple, TrashSimple, X } from "@phosphor-icons/react"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { groupChatsByDate } from "./utils"
 
 type CommandHistoryProps = {
   chatHistory: Chats[]
@@ -29,11 +30,6 @@ type CommandHistoryProps = {
   trigger: React.ReactNode
   isOpen: boolean
   setIsOpen: (open: boolean) => void
-}
-
-type TimeGroup = {
-  name: string
-  chats: Chats[]
 }
 
 type CommandItemEditProps = {
@@ -57,81 +53,8 @@ type CommandItemRowProps = {
   editingId: string | null
   deletingId: string | null
   router: ReturnType<typeof useRouter>
-}
-
-// Group chats by time periods
-function groupChatsByDate(
-  chats: Chats[],
-  searchQuery: string
-): TimeGroup[] | null {
-  if (searchQuery) return null // Don't group when searching
-
-  const now = new Date()
-  const today = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate()
-  ).getTime()
-  const weekAgo = today - 7 * 24 * 60 * 60 * 1000
-  const monthAgo = today - 30 * 24 * 60 * 60 * 1000
-  const yearStart = new Date(now.getFullYear(), 0, 1).getTime()
-
-  const todayChats: Chats[] = []
-  const last7DaysChats: Chats[] = []
-  const last30DaysChats: Chats[] = []
-  const thisYearChats: Chats[] = []
-  const olderChats: Record<number, Chats[]> = {}
-
-  chats.forEach((chat) => {
-    if (!chat.created_at) {
-      todayChats.push(chat)
-      return
-    }
-
-    const chatTimestamp = new Date(chat.created_at).getTime()
-
-    if (chatTimestamp >= today) {
-      todayChats.push(chat)
-    } else if (chatTimestamp >= weekAgo) {
-      last7DaysChats.push(chat)
-    } else if (chatTimestamp >= monthAgo) {
-      last30DaysChats.push(chat)
-    } else if (chatTimestamp >= yearStart) {
-      thisYearChats.push(chat)
-    } else {
-      const year = new Date(chat.created_at).getFullYear()
-      if (!olderChats[year]) {
-        olderChats[year] = []
-      }
-      olderChats[year].push(chat)
-    }
-  })
-
-  const result: TimeGroup[] = []
-
-  if (todayChats.length > 0) {
-    result.push({ name: "Today", chats: todayChats })
-  }
-
-  if (last7DaysChats.length > 0) {
-    result.push({ name: "Last 7 days", chats: last7DaysChats })
-  }
-
-  if (last30DaysChats.length > 0) {
-    result.push({ name: "Last 30 days", chats: last30DaysChats })
-  }
-
-  if (thisYearChats.length > 0) {
-    result.push({ name: "This year", chats: thisYearChats })
-  }
-
-  Object.entries(olderChats)
-    .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
-    .forEach(([year, yearChats]) => {
-      result.push({ name: year, chats: yearChats })
-    })
-
-  return result
+  isCurrentChat: boolean
+  closeDialog: () => void
 }
 
 // Component for editing a chat item
@@ -253,10 +176,16 @@ function CommandItemRow({
   editingId,
   deletingId,
   router,
+  isCurrentChat,
+  closeDialog,
 }: CommandItemRowProps) {
   return (
     <CommandItem
       onSelect={() => {
+        if (isCurrentChat) {
+          closeDialog()
+          return
+        }
         if (!editingId && !deletingId) {
           router.push(`/c/${chat.id}`)
         }
@@ -343,6 +272,7 @@ export function CommandHistory({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState("")
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const params = useParams<{ chatId: string }>()
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open)
@@ -388,7 +318,6 @@ export function CommandHistory({
     setDeletingId(null)
   }, [])
 
-  // Memoize filtered chats to avoid recalculating on every render
   const filteredChat = useMemo(() => {
     const query = searchQuery.toLowerCase()
     return query
@@ -398,16 +327,15 @@ export function CommandHistory({
       : chatHistory
   }, [chatHistory, searchQuery])
 
-  // Group chats by time periods - memoized to avoid recalculation
+  // Group chats by time periods
   const groupedChats = useMemo(
     () => groupChatsByDate(chatHistory, searchQuery),
     [chatHistory, searchQuery]
   )
 
-  // Render chat item with useCallback to avoid recreating function on every render
   const renderChatItem = useCallback(
     (chat: Chats) => (
-      <div key={chat.id} className="px-0 py-1">
+      <div key={chat.id} className="px-0 py-0.5">
         {editingId === chat.id ? (
           <CommandItemEdit
             chat={chat}
@@ -430,6 +358,8 @@ export function CommandHistory({
             editingId={editingId}
             deletingId={deletingId}
             router={router}
+            isCurrentChat={params.chatId === chat.id}
+            closeDialog={() => handleOpenChange(false)}
           />
         )}
       </div>
@@ -448,7 +378,7 @@ export function CommandHistory({
     ]
   )
 
-  // Prefetch chat pages
+  // Prefetch chat pages, later we will do pagination + infinite scroll
   useEffect(() => {
     if (!isOpen) return
 
@@ -492,7 +422,7 @@ export function CommandHistory({
                 <CommandGroup
                   key={group.name}
                   heading={group.name}
-                  className="p-1.5"
+                  className="space-y-0 px-1.5 py-2"
                 >
                   {group.chats.map((chat) => renderChatItem(chat))}
                 </CommandGroup>
