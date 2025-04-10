@@ -1,9 +1,9 @@
 "use client"
 
+import { useChatSession } from "@/app/providers/chat-session-provider"
 import { toast } from "@/components/ui/toast"
 import type { Message as MessageAISDK } from "ai"
-import { usePathname } from "next/navigation"
-import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import { createContext, useContext, useEffect, useState } from "react"
 import { writeToIndexedDB } from "../persist"
 import {
   addMessage,
@@ -36,11 +36,13 @@ export function useMessages() {
 
 export function MessagesProvider({ children }: { children: React.ReactNode }) {
   const [messages, setMessages] = useState<MessageAISDK[]>([])
-  const pathname = usePathname()
-  // rely on current pathname to get the chatId
-  const chatId = useMemo(() => {
-    return pathname?.startsWith("/c/") ? pathname.split("/c/")[1] : null
-  }, [pathname])
+  const { chatId } = useChatSession()
+
+  useEffect(() => {
+    if (chatId === null) {
+      setMessages([])
+    }
+  }, [chatId])
 
   useEffect(() => {
     if (!chatId) return

@@ -4,12 +4,7 @@ import { redirect } from "next/navigation"
 import Chat from "../../components/chat/chat"
 import LayoutApp from "../../components/layout/layout-app"
 
-export default async function PrivatePage({
-  params,
-}: {
-  params: Promise<{ chatId: string }>
-}) {
-  const { chatId } = await params
+export default async function PrivatePage() {
   const supabase = await createClient()
 
   const { data: userData, error: userError } = await supabase.auth.getUser()
@@ -21,7 +16,7 @@ export default async function PrivatePage({
   return (
     <MessagesProvider>
       <LayoutApp>
-        <Chat chatId={chatId} />
+        <Chat />
       </LayoutApp>
     </MessagesProvider>
   )
