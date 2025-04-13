@@ -26,17 +26,13 @@ See [INSTALL.md](./INSTALL.md) for setup instructions.
 - [vercel ai sdk](https://vercel.com/blog/introducing-the-vercel-ai-sdk) — model integration, AI features
 - [supabase](https://supabase.com) — auth and storage
 
-## Coming next
-
-- more model support
-- search
-- agent mode
-- memory
-
 ## License
 
 Apache License 2.0
 
-## Notes
-
-This is a beta release. The codebase is evolving and may change.
+## Author
+<a href="https://github.com/zehan12">
+<img src="https://avatars.githubusercontent.com/u/73664886?s=400&u=b4640ee6fcf6bdb55f455d2b1ec8d91a330f9b04&v=4" width="100px;" alt="Zehan Khan"/><br />
+<sub><b>Zehan Khan</b></sub>
+</a><br />
+<a href="https://github.com/zehan12/zola-ai/commits?author=zehan12" title="Code">💻</a>
